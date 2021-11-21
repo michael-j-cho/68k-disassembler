@@ -6,9 +6,14 @@
 *-----------------------------------------------------------
 STARTING_ADDR   EQU     $350
 ENDING_ADDR     EQU     $400
-
+        
     
 START ORG    $1000
+
+*************TEST DATA (DELETE)*******************
+        MOVE.W   #$1234,D5
+*************TEST DATA (DELETE)*******************
+
                                           
 INPUT_START_ADDR
         LEA     INPUT_START_MSG,A1          ;display message to input starting addr            
@@ -42,14 +47,12 @@ INPUT_END_ADDR_LOOP
         ADD.L   D1,D2                       ;add hex value to D2
         SUBQ    #1,D7                       ;decrement counter
         BNE     INPUT_END_ADDR_LOOP         ;repeat this loop 
-        MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400
-    
-    
-        JSR     ENDLINE
-        MOVE.L  STARTING_ADDR,D1
-        JSR     PRINT_BASE_16
+        MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400     
         
-        ;JSR     OPCODE_SUBROUTINE_START
+        MOVE.W  (A1),CURRENT_OPCODE
+        JSR     DISPLAY_MEMORY
+        
+        SIMHALT
         
         *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
@@ -309,9 +312,24 @@ CONVERT_TO_HEX_ALPHA
 * Prints long in D1 to console
 *-----------------------------------------------------------
 PRINT_BASE_16
-        MOVE.B  #16,D2
+        MOVE.B  #16,D2                      ;prints data in D1 in hex
         MOVE    #15,D0
         TRAP    #15
+        RTS
+
+*-----------------------------------------------------------
+* DISPLAY_MEMORY
+* PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
+* Prints all data in memory range
+*-----------------------------------------------------------
+DISPLAY_MEMORY
+        MOVEA.L STARTING_ADDR,A6            ;move starting addr to A6
+        MOVEA.L ENDING_ADDR,A7              ;move ending addr to A7
+        JSR     ENDLINE                     ;endline
+        MOVE.B  (A6)+,D1                    ;load byte at addr A6 into D1
+        JSR     PRINT_BASE_16               ;print D1 in base 16
+        CMPA.W  A6,A7                       ;compare A6 with ending addr
+        BNE     DISPLAY_MEMORY              ;repeat loop if addr not equal
         RTS
 
 *-----------------------------------------------------------
