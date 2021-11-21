@@ -48,7 +48,239 @@ INPUT_END_ADDR_LOOP
         JSR     ENDLINE
         MOVE.L  STARTING_ADDR,D1
         JSR     PRINT_BASE_16
+        
+        ;JSR     OPCODE_SUBROUTINE_START
+        
+        *-----------------------------------------------------------
+*///////////////////////////////////////////////////////////
+*OPCODE_SUBROUTINE_START
+*PRECONDITION: CURRENT_OPCODE contains the value to the current opcode to be decoded
+*
+*Opcodes can be roughly identified according to their highest 4 bits in hex:
+*0:     Invalid - no supported opcodes
+*1: MOVE.B
+*2: MOVE.L, MOVEA.L
+*3: MOVE.W, MOVEA.W
+*4: LEA, JSR, RTS, MOVEM, NOT, NOP
+*5: ADDQ
+*6: BGT, BLT, BEQ, BRA
+*7: MOVEQ
+*8: OR
+*9: SUB
+*A:     Invalid - no supported opcodes
+*B:     Invalid - no supported opcodes
+*C: AND
+*D: ADD, ADDA
+*E: LSR, LSL, ASR, ASL, ROL, ROR
+*F:     Invalid - no supported opcodes
+*///////////////////////////////////////////////////////////
+*-----------------------------------------------------------
+OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at highest 4 bits
+        MOVE.W  CURRENT_OPCODE,D0
+        MOVE.B  #12,D1
+        LSR.L   D1,D0
 
+    ;check for 0
+        CMP.B   #$0,D0
+        BEQ     CHECK_GROUP_0
+    
+    ;check for 1
+        CMP.B   #$1,D0
+        BEQ     CHECK_GROUP_1
+    
+    ;check for 2
+        CMP.B   #$2,D0
+        BEQ     CHECK_GROUP_2
+    
+    ;check for 3
+        CMP.B   #$3,D0
+        BEQ     CHECK_GROUP_3
+    
+    ;check for 4
+        CMP.B   #$4,D0
+        BEQ     CHECK_GROUP_4
+    
+    ;check for 5
+        CMP.B   #$5,D0
+        BEQ     CHECK_GROUP_5
+    
+    ;check for 6
+        CMP.B   #$6,D0
+        BEQ     CHECK_GROUP_6
+    
+    ;check for 7
+        CMP.B   #$7,D0
+        BEQ     CHECK_GROUP_7
+    
+    ;check for 8
+        CMP.B   #$8,D0
+        BEQ     CHECK_GROUP_8
+    
+    ;check for 9
+        CMP.B   #$9,D0
+        BEQ     CHECK_GROUP_9
+    
+    ;check for A
+        CMP.B   #$A,D0
+        BEQ     CHECK_GROUP_A
+    
+    ;check for B
+        CMP.B   #$B,D0
+        BEQ     CHECK_GROUP_B
+    
+    ;check for C
+        CMP.B   #$C,D0
+        BEQ     CHECK_GROUP_C
+    
+    ;check for D
+        CMP.B   #$D,D0
+        BEQ     CHECK_GROUP_D
+    
+    ;check for E
+        CMP.B   #$E,D0
+        BEQ     CHECK_GROUP_E
+    
+    ;check for F
+        CMP.B   #$F,D0
+        BEQ     CHECK_GROUP_F
+        
+        BRA     OPCODE_SUBROUTINE_END
+    
+    
+*-----------------------------------------------------------
+*Group 0
+*Checks for these valid opcodes: None
+*Checks for these invalid/unsupported opcodes:
+*-----------------------------------------------------------
+CHECK_GROUP_0
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 1
+*Checks for these valid opcodes: MOVE.B
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_1
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 2
+*Checks for these valid opcodes: MOVE.L, MOVEA.L
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_2
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 3
+*Checks for these valid opcodes: MOVE.W, MOVEA.W
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_3
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 4
+*Checks for these valid opcodes: LEA, JSR, RTS, MOVEM, NOT, NOP
+*Checks for these invalid/unsupported opcodes:
+*-----------------------------------------------------------
+CHECK_GROUP_4
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 5
+*Checks for these valid opcodes: ADDQ
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_5
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 6
+*Checks for these valid opcodes: BGT, BLT, BEQ, BRA
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_6
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 7
+*Checks for these valid opcodes: MOVEQ
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_7
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 8
+*Checks for these valid opcodes: OR
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_8
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group 9
+*Checks for these valid opcodes: SUB
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_9
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group A
+*Checks for these valid opcodes: None
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_A
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group B
+*Checks for these valid opcodes: None
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_B
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group C
+*Checks for these valid opcodes: AND
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_C
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group D
+*Checks for these valid opcodes: ADD, ADDA
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_D
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group E
+*Checks for these valid opcodes: LSR, LSL, ASR, ASL, ROL, ROR
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_E
+
+        BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*Group F
+*Checks for these valid opcodes: None
+*Checks for these invalid/unsupported opcodes: 
+*-----------------------------------------------------------
+CHECK_GROUP_F
+
+        BRA     OPCODE_SUBROUTINE_END        
+*-----------------------------------------------------------
+*///////////////////////////////////////////////////////////
+*OPCODE_SUBROUTINE_END
+*///////////////////////////////////////////////////////////
+*-----------------------------------------------------------
+OPCODE_SUBROUTINE_END
     
 
     SIMHALT             ; halt simulator
@@ -70,6 +302,7 @@ CONVERT_TO_HEX_ALPHA
         SUBI.B  #$37,D1                     ;sub 37 for alpha value
         RTS     
         
+
 *-----------------------------------------------------------
 * PRINT_BASE_16
 * PRECONDITION: Move long to D1
@@ -113,6 +346,9 @@ CHAR_F	DC.B	'F',0
 INPUT_START_MSG     DC.W    'Please enter an 8 character starting address in hex: ',0
 INPUT_END_MSG       DC.W    'Please enter an 8 character ending address in hex: ',0
 ENDL                DC.W    '',0
+
+*Variables
+CURRENT_OPCODE      DS.W    1
 
 
     END    $1000        ; last line of source
