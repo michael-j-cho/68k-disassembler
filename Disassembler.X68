@@ -11,38 +11,38 @@ ENDING_ADDR     EQU     $400
 START ORG    $1000
                                           
 INPUT_START_ADDR
-        LEA     INPUT_START_MSG,A1              
+        LEA     INPUT_START_MSG,A1          ;display message to input starting addr            
         MOVE    #14,D0
         TRAP    #15
-        MOVE    #6,D7
+        MOVE    #6,D7                       ;6 unit counter in d7
     
 INPUT_START_ADDR_LOOP
-        MOVE    #5,D0
+        MOVE    #5,D0                       ;read single ASCII val from the keyboard into D1.B
         TRAP    #15
-        JSR     CONVERT_TO_HEX
-        ROL.L   #4,D2
-        ADD.L   D1,D2
-        SUBQ    #1,D7
-        BNE     INPUT_START_ADDR_LOOP
-        MOVE.L  D2,STARTING_ADDR
+        JSR     CONVERT_TO_HEX              ;convert ASCII to hex
+        ROL.L   #4,D2                       ;rotate D2 left 4 bits
+        ADD.L   D1,D2                       ;add hex value to D2
+        SUBQ    #1,D7                       ;decrement counter
+        BNE     INPUT_START_ADDR_LOOP       ;repeat this loop  
+        MOVE.L  D2,STARTING_ADDR            ;move D2 into STARTING_ADDR at $350
     
 INPUT_END_ADDR
-        JSR     ENDLINE
-        CLR.L   D2
-        LEA     INPUT_END_MSG,A1
-        MOVE    #14,D0
-        TRAP    #15
-        MOVE    #6,D7
+        JSR     ENDLINE                        
+        CLR.L   D2                          
+        LEA     INPUT_END_MSG,A1            ;display message to input ending addr
+        MOVE    #14,D0                  
+        TRAP    #15                         
+        MOVE    #6,D7                       ;6 unit counter in d7
 
 INPUT_END_ADDR_LOOP
-        MOVE    #5,D0
+        MOVE    #5,D0                       ;read single ASCII val from the keyboard into D1.B
         TRAP    #15
-        JSR     CONVERT_TO_HEX
-        ROL.L   #4,D2
-        ADD.L   D1,D2
-        SUBQ    #1,D7
-        BNE     INPUT_END_ADDR_LOOP
-        MOVE.L  D2,ENDING_ADDR
+        JSR     CONVERT_TO_HEX              ;convert ASCII to hex
+        ROL.L   #4,D2                       ;rotate D2 left 4 bits
+        ADD.L   D1,D2                       ;add hex value to D2
+        SUBQ    #1,D7                       ;decrement counter
+        BNE     INPUT_END_ADDR_LOOP         ;repeat this loop 
+        MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400
     
     
         JSR     ENDLINE
@@ -352,6 +352,7 @@ CURRENT_OPCODE      DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~
