@@ -146,25 +146,30 @@ OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at high
     ;check for F
         CMP.B   #$F,D0
         BEQ     CHECK_GROUP_F
-        
-        BRA     OPCODE_SUBROUTINE_END
-    
     
 *-----------------------------------------------------------
 *Group 0
 *Checks for these valid opcodes: None
-*Checks for these invalid/unsupported opcodes:
+*Checks for these invalid/unsupported opcodes: None
+*Nothing supported in this group
 *-----------------------------------------------------------
 CHECK_GROUP_0
-
+        
+        JSR     INVALID_OPCODE
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 1
 *Checks for these valid opcodes: MOVE.B
-*Checks for these invalid/unsupported opcodes: 
+*Checks for these invalid/unsupported opcodes: No need to check for these
 *-----------------------------------------------------------
 CHECK_GROUP_1
 
+CHECK_FOR_MOVEB
+        MOVE.W  CURRENT_OPCODE, D0
+        ANDI.W  #$F000,D0
+        CMP.W   #$1000,D0
+        BNE     INVALID_OPCODE
+        JSR     PRINT_MOVEB
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 2
@@ -173,7 +178,27 @@ CHECK_GROUP_1
 *-----------------------------------------------------------
 CHECK_GROUP_2
 
-        BRA     OPCODE_SUBROUTINE_END 
+CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the address mode is different
+        MOVE.W  CUR_OP_CODE,D0
+        MOVE.W  #7,D1
+        LSL.W   D1,D0
+        LSR.W   D1,D0
+        MOVE.W  #6,D1
+        LSR.W   D1,D0
+        MOVE.W  D0,D1
+        CMP.W   #$1,D2
+        BNE     CHECK_FOR_MOVEL
+        JSR     PRINT_MOVEAL
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_MOVEL
+        MOVE.W  CURRENT_OPCODE, D0
+        ANDI.W  #$F000,D0
+        CMP.W   #$2000,D0
+        BNE     INVALID_OPCODE
+        JSR     PRINT_MOVEL
+        BRA     OPCODE_SUBROUTINE_END
+
 *-----------------------------------------------------------
 *Group 3
 *Checks for these valid opcodes: MOVE.W, MOVEA.W
@@ -184,7 +209,7 @@ CHECK_GROUP_3
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 4
-*Checks for these valid opcodes: LEA, JSR, RTS, MOVEM, NOT, NOP
+*Checks for these valid opcodes: LEA, JSR, RTS, MOVEM.W, MOVEM.L, NOT, NOP
 *Checks for these invalid/unsupported opcodes:
 *-----------------------------------------------------------
 CHECK_GROUP_4
@@ -277,16 +302,173 @@ CHECK_GROUP_E
 *-----------------------------------------------------------
 CHECK_GROUP_F
 
-        BRA     OPCODE_SUBROUTINE_END        
+        BRA     OPCODE_SUBROUTINE_END
+        
+*-----------------------------------------------------------
+*INVALID_OPCODE
+*PRECONDITION: 
+*Moves 0 to OPCODE_VALIDITY to signal that the current opcode is invalid
+*-----------------------------------------------------------
+INVALID_OPCODE
+        MOVE.B  #0,OPCODE_VALIDITY
+        MOVE.L  #P_INVALID,OPCODE_TO_PRINT
+        
+        RTS
+        
+
+*-----------------------------------------------------------
+*PRINTING
+*These will load the appropriate variables with the constant to be printed out by I/O
+*-----------------------------------------------------------
+
+*-----Group 0 - nothing to print-----*
+
+*-----Group 1-----*
+PRINT_MOVEB
+        MOVE.L  #P_MOVEB,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 2-----*
+PRINT_MOVEL
+        MOVE.L  #P_MOVEL,OPCODE_TO_PRINT
+        RTS
+        
+PRINT_MOVEAL
+        MOVE.L  #P_MOVEAL,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 3-----*
+PRINT_MOVEW
+        MOVE.L  #P_MOVEW,OPCODE_TO_PRINT
+        RTS
+        
+PRINT_MOVEAW
+        MOVE.L  #P_MOVEAW,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 4-----*
+PRINT_LEA
+        MOVE.L  #P_LEA,OPCODE_TO_PRINT
+        RTS
+        
+PRINT_JSR
+        MOVE.L  #P_JSR,OPCODE_TO_PRINT
+        RTS
+
+PRINT_RTS
+        MOVE.L  #P_RTS,OPCODE_TO_PRINT
+        RTS
+
+PRINT_MOVEMW
+        MOVE.L  #P_MOVEMW,OPCODE_TO_PRINT
+        RTS
+
+PRINT_MOVEML
+        MOVE.L  #P_MOVEML,OPCODE_TO_PRINT
+        RTS
+
+PRINT_NOT
+        MOVE.L  #P_NOT,OPCODE_TO_PRINT
+        RTS
+
+PRINT_NOP
+        MOVE.L  #P_NOP,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 5-----*
+PRINT_ADDQ
+        MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 6-----*
+PRINT_BGT
+        MOVE.L  #P_BGT,OPCODE_TO_PRINT
+        RTS
+
+PRINT_BLT
+        MOVE.L  #P_BLT,OPCODE_TO_PRINT
+        RTS
+
+PRINT_BEQ
+        MOVE.L  #P_BEQ,OPCODE_TO_PRINT
+        RTS
+
+PRINT_BRA
+        MOVE.L  #P_BRA,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 7-----*
+PRINT_MOVEQ
+        MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
+        RTS
+
+*-----Group 8-----*
+PRINT_OR
+        MOVE.L  #P_OR,OPCODE_TO_PRINT
+        RTS
+        
+*-----Group 9-----*
+PRINT_SUB
+        MOVE.L  #P_SUB,OPCODE_TO_PRINT
+        RTS
+
+*Group A - nothing to print
+
+*Group B - nothing to print
+
+*-----Group C-----*
+PRINT_AND
+        MOVE.L  #P_AND,OPCODE_TO_PRINT
+        RTS
+
+*-----Group D-----*
+PRINT_ADD
+        MOVE.L  #P_ADD,OPCODE_TO_PRINT
+        RTS
+
+PRINT_ADDA
+        MOVE.L  #P_ADDA,OPCODE_TO_PRINT
+        RTS
+
+*-----Group E-----*
+PRINT_LSR
+        MOVE.L  #P_LSR,OPCODE_TO_PRINT
+        RTS
+
+PRINT_LSL
+        MOVE.L  #P_LSL,OPCODE_TO_PRINT
+        RTS
+
+PRINT_ASR
+        MOVE.L  #P_ASR,OPCODE_TO_PRINT
+        RTS
+
+PRINT_ASL
+        MOVE.L  #P_ASL,OPCODE_TO_PRINT
+        RTS
+
+PRINT_ROL
+        MOVE.L  #P_ROL,OPCODE_TO_PRINT
+        RTS
+
+PRINT_ROR
+        MOVE.L  #P_ROR,OPCODE_TO_PRINT
+        RTS
+
+*-----Group F - nothing to print-----*
+
+
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
 *OPCODE_SUBROUTINE_END
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
 OPCODE_SUBROUTINE_END
-    
-
-    SIMHALT             ; halt simulator
+        CMP.B   #1,OPCODE_VALIDITY
+        *branch to some printing method if it's not equal (to print that it's invalid)
+        *branch to parse ea if it's equal to check further
+        
+        RTS
     
 *-----------------------------------------------------------
 * CONVERT_TO_HEX
@@ -360,6 +542,41 @@ CHAR_D	DC.B	'D',0
 CHAR_E	DC.B	'E',0
 CHAR_F	DC.B	'F',0
 
+*table for opcode constants
+P_INVALID       DC.B    '   DATA   $',0
+P_Byte          DC.B    '.B ',0
+P_Word          DC.B    '.W ',0
+P_Long          DC.B    '.L ',0
+P_MOVEB         DC.B    '   MOVE.B  ',0
+P_MOVEL         DC.B    '   MOVE.L  ',0
+P_MOVEAL        DC.B    '   MOVEA.L ',0
+P_MOVEW         DC.B    '   MOVE.W  ',0
+P_MOVEAW        DC.B    '   MOVEA.W ',0
+P_LEA           DC.B    '   LEA     ',0
+P_JSR           DC.B    '   JSR     ',0
+P_RTS           DC.B    '   RTS',0      *no operands
+P_MOVEMW        DC.B    '   MOVEM.W ',0
+P_MOVEML        DC.B    '   MOVEM.L ',0
+P_NOT           DC.B    '   NOT     ',0
+P_NOP           DC.B    '   NOP',0      *no operands
+P_ADDQ          DC.B    '   ADDQ',0
+P_BGT           DC.B    '   BGT     ',0
+P_BLT           DC.B    '   BLT     ',0
+P_BEQ           DC.B    '   BEQ     ',0
+P_BRA           DC.B    '   BRA     ',0
+P_MOVEQ         DC.B    '   MOVEQ',0
+P_OR            DC.B    '   OR',0
+P_SUB           DC.B    '   SUB',0
+P_AND           DC.B    '   AND',0
+P_ADD           DC.B    '   ADD',0
+P_ADDA          DC.B    '   ADDA',0
+P_LSR           DC.B    '   LSR',0
+P_LSL           DC.B    '   LSL',0
+P_ASR           DC.B    '   ASR',0
+P_ASL           DC.B    '   ASL',0
+P_ROL           DC.B    '   ROL',0
+P_ROR           DC.B    '   ROR',0
+
 *Console messages
 INPUT_START_MSG     DC.W    'Please enter an 8 character starting address in hex: ',0
 INPUT_END_MSG       DC.W    'Please enter an 8 character ending address in hex: ',0
@@ -367,6 +584,9 @@ ENDL                DC.W    '',0
 
 *Variables
 CURRENT_OPCODE      DS.W    1
+OPCODE_VALIDITY     DS.B    1
+OPCODE_TO_PRINT     DS.W    1
+SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
