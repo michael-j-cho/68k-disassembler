@@ -80,6 +80,7 @@ INPUT_END_ADDR_LOOP
 *-----------------------------------------------------------
 OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at highest 4 bits
         MOVE.W  CURRENT_OPCODE,D0
+        MOVE.B  #1,OPCODE_VALIDITY ;default validity to 1 (valid)
         MOVE.B  #12,D1
         LSR.L   D1,D0
 
@@ -150,7 +151,6 @@ OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at high
 *-----------------------------------------------------------
 *Group 0
 *Checks for these valid opcodes: None
-*Checks for these invalid/unsupported opcodes: None
 *Nothing supported in this group
 *-----------------------------------------------------------
 CHECK_GROUP_0
@@ -160,7 +160,6 @@ CHECK_GROUP_0
 *-----------------------------------------------------------
 *Group 1
 *Checks for these valid opcodes: MOVE.B
-*Checks for these invalid/unsupported opcodes: No need to check for these
 *-----------------------------------------------------------
 CHECK_GROUP_1
 
@@ -169,17 +168,17 @@ CHECK_FOR_MOVEB
         ANDI.W  #$F000,D0
         CMP.W   #$1000,D0
         BNE     INVALID_OPCODE
+        ;else
         JSR     PRINT_MOVEB
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 2
 *Checks for these valid opcodes: MOVE.L, MOVEA.L
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_2
 
-CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the address mode is different
-        MOVE.W  CUR_OP_CODE,D0
+CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the addressing mode is different
+        MOVE.W  CURRENT_OPCODE,D0
         MOVE.W  #7,D1
         LSL.W   D1,D0
         LSR.W   D1,D0
@@ -188,7 +187,8 @@ CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the address 
         MOVE.W  D0,D1
         CMP.W   #$1,D2
         BNE     CHECK_FOR_MOVEL
-        JSR     PRINT_MOVEAL
+        ;else
+        JSR     PRINT_MOVEAL    ;MOVEAL
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_MOVEL
@@ -196,69 +196,245 @@ CHECK_FOR_MOVEL
         ANDI.W  #$F000,D0
         CMP.W   #$2000,D0
         BNE     INVALID_OPCODE
-        JSR     PRINT_MOVEL
+        ;else
+        JSR     PRINT_MOVEL ;MOVEL
         BRA     OPCODE_SUBROUTINE_END
 
 *-----------------------------------------------------------
 *Group 3
 *Checks for these valid opcodes: MOVE.W, MOVEA.W
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_3
 
-        BRA     OPCODE_SUBROUTINE_END 
+CHECK_FOR_MOVEAW ;MOVEAW has a slight difference from MOVEW in that the address mode is different
+        MOVE.W  CURRENT_OPCODE,D0
+        MOVE.W  #7,D1
+        LSL.W   D1,D0
+        LSR.W   D1,D0
+        MOVE.W  #6,D1
+        LSR.W   D1,D0
+        MOVE.W  D0,D1
+        CMP.W   #$1,D2
+        BNE     CHECK_FOR_MOVEW
+        ;else
+        JSR     PRINT_MOVEAW
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_MOVEW
+        MOVE.W  CURRENT_OPCODE, D0
+        ANDI.W  #$F000,D0
+        CMP.W   #$3000,D0
+        BNE     INVALID_OPCODE
+        ;else
+        JSR     PRINT_MOVEW
+        BRA     OPCODE_SUBROUTINE_END
+
 *-----------------------------------------------------------
 *Group 4
 *Checks for these valid opcodes: LEA, JSR, RTS, MOVEM.W, MOVEM.L, NOT, NOP
-*Checks for these invalid/unsupported opcodes:
 *-----------------------------------------------------------
 CHECK_GROUP_4
+       
+       ;check for supported opcodes
+CHECK_FOR_LEA
+        MOVE.W  CURRENT_OPCODE, D0
+        ANDI.W  #$F1C0,D0
+        CMP.W   #$41C0,D0
+        BNE     CHECK_FOR_JSR ;check for next opcode
+        ;else
+        JSR     PRINT_LEA
+        BRA     OPCODE_SUBROUTINE_END
 
-        BRA     OPCODE_SUBROUTINE_END 
+CHECK_FOR_JSR
+        MOVE.W  CURRENT_OPCODE, D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$4E80,D0
+        BNE     CHECK_FOR_RTS ;check for next opcode
+        ;else
+        JSR     PRINT_JSR
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_RTS ;full static, no masking
+        MOVE.W  CURRENT_OPCODE, D0
+        CMP.W   #$4E75,D0
+        BNE     CHECK_FOR_MOVEMW ;check for next opcode
+        ;else
+        JSR     PRINT_RTS
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_MOVEMW
+        ;since size is in a special place, find the size
+        MOVE.W  CURRENT_OPCODE,D0
+        MOVE.W  #9,D1
+        LSL.W   D1,D0
+        LSR.W   D1,D0
+        MOVE.W  #6,D1
+        LSR.W   D1,D0
+        MOVE.W  D0,SIZE_TO_PRINT
+        
+        CMP.B   #$0,SIZE_TO_PRINT
+        BNE     CHECK_FOR_MOVEML ;if size is 1, check for MOVEM.L
+        ;else
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FB80,D0
+        CMP.W   #$4880,D0
+        BNE     CHECK_FOR_NOT
+        ;else
+        JSR     PRINT_MOVEMW
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_MOVEML
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FB80,D0
+        CMP.W   #$4880,D0
+        BNE     CHECK_FOR_NOT
+        ;else
+        JSR     PRINT_MOVEML
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_NOT
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FF00,D0
+        CMP.W   #$4600,D0
+        BNE     CHECK_FOR_NOP
+        ;else
+        JSR     PRINT_NOT
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_NOP
+        MOVE.W  CURRENT_OPCODE,D0
+        CMP.W   #$4E71,D0
+        BNE     INVALID_OPCODE
+        ;else
+        JSR     PRINT_NOP
+        BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 5
 *Checks for these valid opcodes: ADDQ
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_5
 
-        BRA     OPCODE_SUBROUTINE_END 
+CHECK_FOR_ADDQ
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F100,D0
+        CMP.W   #$5100,D0
+        BNE     INVALID_OPCODE
+        ;else
+        JSR     PRINT_ADDQ
+        BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 6
 *Checks for these valid opcodes: BGT, BLT, BEQ, BRA
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_6
 
+CHECK_FOR_BGT
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FF00,D0
+        CMP.W   #$6E00,D0
+        BNE     CHECK_FOR_BLT
+        ;else
+        JSR     PRINT_BGT
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_BLT
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FF00,D0
+        CMP.W   #$6D00,D0
+        BNE     CHECK_FOR_BEQ
+        ;else
+        JSR     PRINT_BLT
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_BEQ
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FF00,D0
+        CMP.W   #$6700,D0
+        BNE     CHECK_FOR_BRA
+        ;else
+        JSR     PRINT_BEQ
+        BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_BRA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FF00,D0
+        CMP.W   #$6000,D0
+        BNE     INVALID_OPCODE
+        ;else
+        JSR     PRINT_BRA
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 7
 *Checks for these valid opcodes: MOVEQ
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_7
 
+CHECK_FOR_MOVEQ
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F100,D0
+        CMP.W   #$7000,D0
+        BNE     INVALID_OPCODE
+        ;else
+        JSR     PRINT_MOVEQ
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 8
 *Checks for these valid opcodes: OR
-*Checks for these invalid/unsupported opcodes: 
+*Must first check DIVU, DIVS, and SBCD because of their similarity to OR
 *-----------------------------------------------------------
 CHECK_GROUP_8
 
+CHECK_FOR_DIVU
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F1C0,D0
+        CMP.W   #$80C0,D0
+        BEQ     INVALID_OPCODE
+        ;else check for next possible invalid opcode
+
+CHECK_FOR_DIVS
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F1C0,D0
+        CMP.W   #$81C0,D0
+        BEQ     INVALID_OPCODE
+        ;else check for next possible invalid opcode
+
+CHECK_FOR_SBCD
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F1F0,D0
+        CMP.W   #$8100,D0
+        BEQ     INVALID_OPCODE
+        ;else it's OR
+
+CHECK_FOR_OR    ;must be OR
+        JSR     PRINT_OR
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 9
 *Checks for these valid opcodes: SUB
-*Checks for these invalid/unsupported opcodes: 
+*Must first check for SUBX and SUBA because of their similarity to SUB
 *-----------------------------------------------------------
 CHECK_GROUP_9
 
+CHECK_FOR_SUBX
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F130,D0
+        CMP.W   #$9100,D0
+        BEQ     INVALID_OPCODE
+        ;else check for next possible invalid opcode
+
+CHECK_FOR_SUBA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F0C0,D0
+        CMP.W   #$90C0,D0
+        BEQ     INVALID_OPCODE
+        ;must be SUB 
+        
+CHECK_FOR_SUB    ;must be OR
+        JSR     PRINT_SUB
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group A
-*Checks for these valid opcodes: None
-*Checks for these invalid/unsupported opcodes: 
+*Checks for these valid opcodes: None 
 *-----------------------------------------------------------
 CHECK_GROUP_A
 
@@ -266,7 +442,6 @@ CHECK_GROUP_A
 *-----------------------------------------------------------
 *Group B
 *Checks for these valid opcodes: None
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_B
 
@@ -274,31 +449,35 @@ CHECK_GROUP_B
 *-----------------------------------------------------------
 *Group C
 *Checks for these valid opcodes: AND
-*Checks for these invalid/unsupported opcodes: 
+*Must first check for EXG, ABCD, MULS, and MULU due to their similarity to AND
 *-----------------------------------------------------------
 CHECK_GROUP_C
+
+CHECK_FOR_EXG
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F130,D0
+        CMP.W   #$9100,D0
+        BEQ     INVALID_OPCODE
+        ;else check for next possible invalid opcode
 
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group D
 *Checks for these valid opcodes: ADD, ADDA
-*Checks for these invalid/unsupported opcodes: 
 *-----------------------------------------------------------
 CHECK_GROUP_D
 
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group E
-*Checks for these valid opcodes: LSR, LSL, ASR, ASL, ROL, ROR
-*Checks for these invalid/unsupported opcodes: 
+*Checks for these valid opcodes: LSR, LSL, ASR, ASL, ROL, ROR 
 *-----------------------------------------------------------
 CHECK_GROUP_E
 
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group F
-*Checks for these valid opcodes: None
-*Checks for these invalid/unsupported opcodes: 
+*Checks for these valid opcodes: None 
 *-----------------------------------------------------------
 CHECK_GROUP_F
 
