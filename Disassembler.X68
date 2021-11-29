@@ -16,10 +16,9 @@ START ORG    $1000
 
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
-* ___     ___  
-*|_ _|   / _ \ 
-* | |   | (_) |
-*|___|   \___/ 
+*
+*PROGRAM START (INPUT/OUTPUT)
+*
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
                                           
@@ -57,6 +56,7 @@ INPUT_END_ADDR_LOOP
         BNE     INPUT_END_ADDR_LOOP         ;repeat this loop 
         MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400     
         
+        JSR     CHECK_MEM_RANGE
         MOVE.W  (A1),CURRENT_OPCODE
         JSR     DISPLAY_MEMORY
         
@@ -802,7 +802,6 @@ CONVERT_TO_HEX_ALPHA
         SUBI.B  #$37,D1                     ;sub 37 for alpha value
         RTS     
         
-
 *-----------------------------------------------------------
 * PRINT_BASE_16
 * PRECONDITION: Move long to D1
@@ -812,6 +811,32 @@ PRINT_BASE_16
         MOVE.B  #16,D2                      ;prints data in D1 in hex
         MOVE    #15,D0
         TRAP    #15
+        CMP.B   #0,D1
+        BNE     NOT_ZERO                    ;prints 00 for 0
+        MOVE    #15,D0
+        TRAP    #15
+        
+NOT_ZERO
+        RTS
+        
+*-----------------------------------------------------------
+* CHECK_MEM_RANGE
+* PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
+* Checks if memory inputs are valid
+*-----------------------------------------------------------
+CHECK_MEM_RANGE
+        MOVEA.L STARTING_ADDR,A2
+        MOVEA.L ENDING_ADDR,A3
+        CMPA.L  A2,A3
+        BGT     WITHIN_RANGE
+        JSR     ENDLINE
+        LEA     MEM_OUT_OF_RANGE,A1                   
+        MOVE    #14,D0
+        TRAP    #15
+        JSR     ENDLINE
+        BRA     INPUT_START_ADDR
+        
+WITHIN_RANGE
         RTS
 
 *-----------------------------------------------------------
@@ -822,11 +847,27 @@ PRINT_BASE_16
 DISPLAY_MEMORY
         MOVEA.L STARTING_ADDR,A6            ;move starting addr to A6
         MOVEA.L ENDING_ADDR,A7              ;move ending addr to A7
+        
+COUNTER_20        
+        MOVE.B  #20,D3
+        
+DISPLAY_MEM_LOOP
         JSR     ENDLINE                     ;endline
         MOVE.B  (A6)+,D1                    ;load byte at addr A6 into D1
         JSR     PRINT_BASE_16               ;print D1 in base 16
         CMPA.W  A6,A7                       ;compare A6 with ending addr
-        BNE     DISPLAY_MEMORY              ;repeat loop if addr not equal
+        BEQ     DISPLAY_RETURN
+        SUBI.B  #1,D3
+        BNE     DISPLAY_MEM_LOOP              ;repeat loop if addr not equal
+        JSR     ENDLINE
+        LEA     ENTER_CONT,A1
+        MOVE.B  #13,D0
+        TRAP    #15
+        MOVE.B  #5,D0
+        TRAP    #15
+        BRA     COUNTER_20
+        
+DISPLAY_RETURN
         RTS
 
 *-----------------------------------------------------------
@@ -838,7 +879,7 @@ ENDLINE
         TRAP    #15
         RTS
 
-   
+      
 *Table for hex characters
 CHAR_0	DC.B	'0',0
 CHAR_1	DC.B	'1',0
@@ -891,6 +932,8 @@ P_ROR           DC.B    '   ROR',0
 *Console messages
 INPUT_START_MSG     DC.W    'Please enter an 8 character starting address in hex: ',0
 INPUT_END_MSG       DC.W    'Please enter an 8 character ending address in hex: ',0
+MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
+ENTER_CONT          DC.W    'Press enter to continue...',0
 ENDL                DC.W    '',0
 
 *Variables
@@ -902,6 +945,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 *~Font name~Courier New~
