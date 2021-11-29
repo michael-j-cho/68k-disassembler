@@ -14,14 +14,6 @@ START ORG    $1000
         MOVE.W   #$1234,D5
 *************TEST DATA (DELETE)*******************
 
-*-----------------------------------------------------------
-*///////////////////////////////////////////////////////////
-* ___     ___  
-*|_ _|   / _ \ 
-* | |   | (_) |
-*|___|   \___/ 
-*///////////////////////////////////////////////////////////
-*-----------------------------------------------------------
                                           
 INPUT_START_ADDR
         LEA     INPUT_START_MSG,A1          ;display message to input starting addr            
@@ -62,7 +54,7 @@ INPUT_END_ADDR_LOOP
         
         SIMHALT
         
-*-----------------------------------------------------------
+        *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
 *OPCODE_SUBROUTINE_START
 *PRECONDITION: CURRENT_OPCODE contains the value to the current opcode to be decoded
@@ -163,7 +155,8 @@ OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at high
 *-----------------------------------------------------------
 CHECK_GROUP_0
         
-        BRA     INVALID_OPCODE 
+        JSR     INVALID_OPCODE
+        BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 1
 *Checks for these valid opcodes: MOVE.B
@@ -270,8 +263,16 @@ CHECK_FOR_RTS ;full static, no masking
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_MOVEMW
-        JSR     ONE_BIT_SIZE_AT_BIT_6 ;find size to distinguish between L and W
-        CMP.B   #$0,CURRENT_OPSIZE
+        ;since size is in a special place, find the size
+        MOVE.W  CURRENT_OPCODE,D0
+        MOVE.W  #9,D1
+        LSL.W   D1,D0
+        LSR.W   D1,D0
+        MOVE.W  #6,D1
+        LSR.W   D1,D0
+        MOVE.W  D0,SIZE_TO_PRINT
+        
+        CMP.B   #$0,SIZE_TO_PRINT
         BNE     CHECK_FOR_MOVEML ;if size is 1, check for MOVEM.L
         ;else
         MOVE.W  CURRENT_OPCODE,D0
@@ -298,7 +299,6 @@ CHECK_FOR_NOT
         BNE     CHECK_FOR_NOP
         ;else
         JSR     PRINT_NOT
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_NOP
@@ -321,7 +321,6 @@ CHECK_FOR_ADDQ
         BNE     INVALID_OPCODE
         ;else
         JSR     PRINT_ADDQ
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 6
@@ -408,7 +407,6 @@ CHECK_FOR_SBCD
 
 CHECK_FOR_OR    ;must be OR
         JSR     PRINT_OR
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 9
@@ -429,24 +427,25 @@ CHECK_FOR_SUBA
         ANDI.W  #$F0C0,D0
         CMP.W   #$90C0,D0
         BEQ     INVALID_OPCODE
-        ;else it's SUB 
+        ;must be SUB 
         
-CHECK_FOR_SUB    ;must be SUB
+CHECK_FOR_SUB    ;must be OR
         JSR     PRINT_SUB
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group A
 *Checks for these valid opcodes: None 
 *-----------------------------------------------------------
 CHECK_GROUP_A
-        BRA     INVALID_OPCODE 
+
+        BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group B
 *Checks for these valid opcodes: None
 *-----------------------------------------------------------
 CHECK_GROUP_B
-        BRA     INVALID_OPCODE 
+
+        BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group C
 *Checks for these valid opcodes: AND
@@ -475,71 +474,14 @@ CHECK_GROUP_D
 *-----------------------------------------------------------
 CHECK_GROUP_E
 
-CHECK_FOR_LSR
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F118,D0
-        CMP.W   #$E008,D0
-        BNE     CHECK_FOR_LSL
-        ;else
-        JSR     PRINT_LSR
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
-        BRA     OPCODE_SUBROUTINE_END
-        
-CHECK_FOR_LSL
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F118,D0
-        CMP.W   #$E108,D0
-        BNE     CHECK_FOR_ASR
-        ;else
-        JSR     PRINT_LSL
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
-        BRA     OPCODE_SUBROUTINE_END
-        
-CHECK_FOR_ASR
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F118,D0
-        CMP.W   #$E000,D0
-        BNE     CHECK_FOR_ASL
-        ;else
-        JSR     PRINT_ASR
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
-        BRA     OPCODE_SUBROUTINE_END
-        
-CHECK_FOR_ASL
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F118,D0
-        CMP.W   #$E100,D0
-        BNE     CHECK_FOR_ROL
-        ;else
-        JSR     PRINT_ASL
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
-        BRA     OPCODE_SUBROUTINE_END
-        
-CHECK_FOR_ROL
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F118,D0
-        CMP.W   #$E118,D0
-        BNE     CHECK_FOR_ROR
-        ;else
-        JSR     PRINT_ROL
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
-        BRA     OPCODE_SUBROUTINE_END
-        
-CHECK_FOR_ROR
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$FF00,D0
-        CMP.W   #$E018,D0
-        BNE     INVALID_OPCODE
-        ;else
-        JSR     PRINT_ROR
-        JSR     TWO_BIT_SIZE_AT_BITS_7_6
-        BRA     OPCODE_SUBROUTINE_END
+        BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group F
 *Checks for these valid opcodes: None 
 *-----------------------------------------------------------
 CHECK_GROUP_F
-        BRA     INVALID_OPCODE
+
+        BRA     OPCODE_SUBROUTINE_END
         
 *-----------------------------------------------------------
 *INVALID_OPCODE
@@ -549,100 +491,38 @@ CHECK_GROUP_F
 INVALID_OPCODE
         MOVE.B  #0,OPCODE_VALIDITY
         MOVE.L  #P_INVALID,OPCODE_TO_PRINT
-        BRA     OPCODE_SUBROUTINE_END
         
-*-----------------------------------------------------------
-*SIZE CHECKS
-*These methods capture the size bit(s)
-*The amount (1 or 2 bits) and location vary slightly between instructions,
-*so a couple different methods are needed
-*-----------------------------------------------------------
-ONE_BIT_SIZE_AT_BIT_6
-        MOVE.W  CURRENT_OPCODE,D0
-        MOVE.W  #9,D1
-        LSL.W   D1,D0
-        LSR.W   D1,D0
-        MOVE.W  #6,D1
-        LSR.W   D1,D0
-        MOVE.W  D0,CURRENT_OPSIZE
         RTS
-
-ONE_BIT_SIZE_AT_BIT_8
-        MOVE.W  CURRENT_OPCODE,D0
-        MOVE.W  #7,D1
-        LSL.W   D1,D0
-        LSR.W   D1,D0
-        MOVE.W  #8,D1
-        LSR.W   D1,D0
-        MOVE.W  D0,CURRENT_OPSIZE
-        RTS
-
-TWO_BIT_SIZE_AT_BITS_7_6
-        ;most opcodes will fall under this method
-        MOVE.W  CURRENT_OPCODE,D0
-        MOVE.W  #8,D1
-        LSL.W   D1,D0
-        LSR.W   D1,D0
-        MOVE.W  #6,D1
-        LSR.W   D1,D0
-        MOVE.W  D0,CURRENT_OPSIZE
-        RTS
+        
 
 *-----------------------------------------------------------
 *PRINTING
 *These will load the appropriate variables with the constant to be printed out by I/O
 *-----------------------------------------------------------
 
-*-----------
-*Size prints
-*-----------
-PRINT_SIZE
-        MOVE.W  CURRENT_OPSIZE,D0
-        CMP.B   #$00,D0
-        BEQ     PRINT_BYTE
-        CMP.B   #$01,D0
-        BEQ     PRINT_WORD
-        BRA     PRINT_LONG
-
-PRINT_BYTE
-        MOVE.W  #P_BYTE,SIZE_TO_PRINT
-        RTS
-
-PRINT_WORD
-        MOVE.W  #P_WORD,SIZE_TO_PRINT
-        RTS
-
-PRINT_LONG
-        MOVE.W  #P_LONG,SIZE_TO_PRINT
-        RTS
 *-----Group 0 - nothing to print-----*
 
 *-----Group 1-----*
 PRINT_MOVEB
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Byte,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEB,OPCODE_TO_PRINT
         RTS
 
 *-----Group 2-----*
 PRINT_MOVEL
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEL,OPCODE_TO_PRINT
         RTS
         
 PRINT_MOVEAL
-        MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEAL,OPCODE_TO_PRINT
         RTS
 
 *-----Group 3-----*
 PRINT_MOVEW
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEW,OPCODE_TO_PRINT
         RTS
         
 PRINT_MOVEAW
-        MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEAW,OPCODE_TO_PRINT
         RTS
 
 *-----Group 4-----*
@@ -659,18 +539,15 @@ PRINT_RTS
         RTS
 
 PRINT_MOVEMW
-        MOVE.L  #P_MOVEM,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEMW,OPCODE_TO_PRINT
         RTS
-        
+
 PRINT_MOVEML
-        MOVE.L  #P_MOVEM,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        MOVE.L  #P_MOVEML,OPCODE_TO_PRINT
         RTS
 
 PRINT_NOT
         MOVE.L  #P_NOT,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_NOP
@@ -680,7 +557,6 @@ PRINT_NOP
 *-----Group 5-----*
 PRINT_ADDQ
         MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 *-----Group 6-----*
@@ -701,21 +577,18 @@ PRINT_BRA
         RTS
 
 *-----Group 7-----*
-PRINT_MOVEQ ;only does longs
+PRINT_MOVEQ
         MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
-        MOVE.L  #P_LONG,SIZE_TO_PRINT
         RTS
 
 *-----Group 8-----*
 PRINT_OR
         MOVE.L  #P_OR,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
         
 *-----Group 9-----*
 PRINT_SUB
         MOVE.L  #P_SUB,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 *Group A - nothing to print
@@ -725,49 +598,40 @@ PRINT_SUB
 *-----Group C-----*
 PRINT_AND
         MOVE.L  #P_AND,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 *-----Group D-----*
 PRINT_ADD
         MOVE.L  #P_ADD,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_ADDA
         MOVE.L  #P_ADDA,OPCODE_TO_PRINT
-        ;JSR     PRINT_ADDA_SIZE ;ADDA has special size location, make special method to handle it
         RTS
 
 *-----Group E-----*
 PRINT_LSR
         MOVE.L  #P_LSR,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_LSL
         MOVE.L  #P_LSL,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_ASR
         MOVE.L  #P_ASR,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_ASL
         MOVE.L  #P_ASL,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_ROL
         MOVE.L  #P_ROL,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 PRINT_ROR
         MOVE.L  #P_ROR,OPCODE_TO_PRINT
-        JSR     PRINT_SIZE
         RTS
 
 *-----Group F - nothing to print-----*
@@ -862,12 +726,16 @@ P_INVALID       DC.B    '   DATA   $',0
 P_Byte          DC.B    '.B ',0
 P_Word          DC.B    '.W ',0
 P_Long          DC.B    '.L ',0
-P_MOVE          DC.B    '   MOVE',0
-P_MOVEA         DC.B    '   MOVEA',0
+P_MOVEB         DC.B    '   MOVE.B  ',0
+P_MOVEL         DC.B    '   MOVE.L  ',0
+P_MOVEAL        DC.B    '   MOVEA.L ',0
+P_MOVEW         DC.B    '   MOVE.W  ',0
+P_MOVEAW        DC.B    '   MOVEA.W ',0
 P_LEA           DC.B    '   LEA     ',0
 P_JSR           DC.B    '   JSR     ',0
 P_RTS           DC.B    '   RTS',0      *no operands
-P_MOVEM         DC.B    '   MOVEM',0
+P_MOVEMW        DC.B    '   MOVEM.W ',0
+P_MOVEML        DC.B    '   MOVEM.L ',0
 P_NOT           DC.B    '   NOT     ',0
 P_NOP           DC.B    '   NOP',0      *no operands
 P_ADDQ          DC.B    '   ADDQ',0
@@ -895,7 +763,6 @@ ENDL                DC.W    '',0
 
 *Variables
 CURRENT_OPCODE      DS.W    1
-CURRENT_OPSIZE      DS.W    1
 OPCODE_VALIDITY     DS.B    1
 OPCODE_TO_PRINT     DS.W    1
 SIZE_TO_PRINT       DS.W    1
