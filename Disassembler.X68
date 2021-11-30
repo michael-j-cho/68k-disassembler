@@ -930,8 +930,8 @@ P_ROL           DC.B    '   ROL',0
 P_ROR           DC.B    '   ROR',0
 
 *Console messages
-INPUT_START_MSG     DC.W    'Please enter an 8 character starting address in hex: ',0
-INPUT_END_MSG       DC.W    'Please enter an 8 character ending address in hex: ',0
+INPUT_START_MSG     DC.W    'Please enter an 6 character starting address in hex: ',0
+INPUT_END_MSG       DC.W    'Please enter an 6 character ending address in hex: ',0
 MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
 ENTER_CONT          DC.W    'Press enter to continue...',0
 ENDL                DC.W    '',0
@@ -945,6 +945,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
