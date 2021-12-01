@@ -1,11 +1,15 @@
 *-----------------------------------------------------------
 * Title      : Disassembler Project
-* Written by : Calvin Lim, Derek Slater, Madeline Ngoc Nguyen, Michael Cho
+* Written by : Calvin Lim, Derek Slater, Madeline Nguyen, Michael Cho
 * Date       :
 * Description:
 *-----------------------------------------------------------
 STARTING_ADDR   EQU     $350
 ENDING_ADDR     EQU     $400
+DEST_VAR        EQU     $450
+DEST_MODE       EQU     $500
+SOURCE_VAR      EQU     $550
+SOURCE_MODE     EQU     $600
         
     
 START ORG    $1000
@@ -926,6 +930,23 @@ P_ASL           DC.B    '   ASL',0
 P_ROL           DC.B    '   ROL',0
 P_ROR           DC.B    '   ROR',0
 
+*table for EA constants
+P_OPEN_PAREN    DC.B    '(',0
+P_CLOSE_PAREN   DC.B    ')',0
+P_POS_SIGN      DC.B    '+',0
+P_MIN_SIGN      DC.B    '-',0
+P_DATA_REG      DC.B    'D',0
+P_ADDR_REG      DC.B    'A',0
+
+P_DOT_BYTE      DC.B    '.B'
+P_DOT_WORD      DC.B    '.W'
+P_DOT_LONG      DC.B    '.L'
+
+P_COMMA         DC.B    ',',0
+P_BIN_SIGN      DC.B    '%',0
+P_HEX_SIGN      DC.B    '$',0
+P_IM_DATA_SIGN  DC.B    '#',0
+
 *Console messages
 INPUT_START_MSG     DC.W    'Please enter an 6 character starting address in hex: ',0
 INPUT_END_MSG       DC.W    'Please enter an 6 character ending address in hex: ',0
@@ -942,6 +963,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
