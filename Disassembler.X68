@@ -936,7 +936,7 @@ DISPLAY_MEM_LOOP
         ADDA.L  #2,A5                       ;increment A5 by 2 since we accessed a word
         JSR     PRINT_BASE_16               ;print D1 in base 16
         CMPA.L  A5,A6                       ;compare A6 with ending addr
-        BGE     DISPLAY_RETURN
+        BLE     DISPLAY_RETURN
         SUBI.B  #1,D3
         BNE     DISPLAY_MEM_LOOP            ;repeat loop if addr not equal
         JSR     ENDLINE
@@ -1042,6 +1042,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
