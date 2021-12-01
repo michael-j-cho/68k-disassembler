@@ -10,6 +10,7 @@ DEST_VAR        EQU     $450
 DEST_MODE       EQU     $500
 SOURCE_VAR      EQU     $550
 SOURCE_MODE     EQU     $600
+TEMP            EQU     $650
         
     
 START ORG    $1000
@@ -156,7 +157,7 @@ OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at high
     ;check for F
         CMP.B   #$F,D0
         BEQ     CHECK_GROUP_F
-    
+
 *-----------------------------------------------------------
 *Group 0
 *Checks for these valid opcodes: None
@@ -785,7 +786,82 @@ OPCODE_SUBROUTINE_END
         *branch to parse ea if it's equal to check further
         
         RTS
-    
+
+*-----------------------------------------------------------
+*///////////////////////////////////////////////////////////
+*EA_SUBROUTINE_START
+*///////////////////////////////////////////////////////////
+*-----------------------------------------------------------
+
+P_SOURCE_EA_MODE
+        LEA     REG_MODE_TABLE,A5
+        MOVE.W  SOURCE_MODE,D6
+        MOVE.W  SOURCE_VAR,TEMP
+        MULU    #6,D6
+        JSR     0(A5,D3)
+        RTS
+
+P_DEST_EA_MODE
+        LEA     REG_MODE_TABLE,A5
+        MOVE.W  DEST_MODE,D6
+        MOVE.W  DEST_VAR,TEMP
+        MULU    #6,D6
+        JSR     0(A5,D3)
+        RTS
+
+*-----------------------------------------------------------
+*///////////////////////////////////////////////////////////
+*REGISTER MODE TABLE
+*///////////////////////////////////////////////////////////
+*-----------------------------------------------------------
+
+REG_MODE_TABLE
+        JMP     REG_MODE_0  *Dn
+        JMP     REG_MODE_1  *An
+        JMP     REG_MODE_2  *(An)
+        JMP     REG_MODE_3  *immediate data
+        JMP     REG_MODE_4  *(An)+
+        JMP     REG_MODE_5  *-(An)
+        JMP     REG_MODE_6  *(xxx).L
+        JMP     REG_MODE_7  *(xxx).W
+
+
+REG_MODE_0                  *Dn
+        JSR     P_DATA_REG
+        JSR     P_REG_NUM
+        RTS
+        
+REG_MODE_1                  *An
+        JSR     P_ADDR_REG
+        JSR     P_REG_NUM
+        RTS
+        
+REG_MODE_2                  *(An)
+        JSR     P_OPEN_PAREN
+        JSR     REG_MODE_1
+        JSR     P_CLOSE_PAREN
+        RTS
+
+REG_MODE_3                  *immediate data #<xxx>
+        *wasn't sure how to do
+
+REG_MODE_4                  *(An)+
+        JSR     REG_MODE_2
+        JSR     P_POS_SIGN
+        RTS
+   
+REG_MODE_5                  *-(An)
+        JSR     P_NEG_SIGN
+        JSR     REG_MODE_2
+        RTS
+
+REG_MODE_6                  *absolute long address (xxx).L
+        *wasn't sure how to do
+
+REG_MODE_7                  *absolute word address (xxx).W
+        *wasn't sure how to do
+
+
 *-----------------------------------------------------------
 * CONVERT_TO_HEX
 * CONVERT_TO_HEX_ALPHA
@@ -934,7 +1010,7 @@ P_ROR           DC.B    '   ROR',0
 P_OPEN_PAREN    DC.B    '(',0
 P_CLOSE_PAREN   DC.B    ')',0
 P_POS_SIGN      DC.B    '+',0
-P_MIN_SIGN      DC.B    '-',0
+P_NEG_SIGN      DC.B    '-',0
 P_DATA_REG      DC.B    'D',0
 P_ADDR_REG      DC.B    'A',0
 
