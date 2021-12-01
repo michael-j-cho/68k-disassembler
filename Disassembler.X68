@@ -59,7 +59,8 @@ INPUT_END_ADDR_LOOP
         MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400     
         
         JSR     CHECK_MEM_RANGE
-        MOVE.W  (A1),CURRENT_OPCODE
+        MOVE.W  (A2),CURRENT_OPCODE         ;data contents of starting address loaded into CURRENT_OPCODE
+        ADDA.L  #2,A2                       ;increment A2 by 2 since we accessed a word
         JSR     DISPLAY_MEMORY
         
         SIMHALT
@@ -828,12 +829,12 @@ REG_MODE_TABLE
 
 REG_MODE_0                  *Dn
         JSR     P_DATA_REG
-        JSR     P_REG_NUM
+        *JSR     P_REG_NUM
         RTS
         
 REG_MODE_1                  *An
         JSR     P_ADDR_REG
-        JSR     P_REG_NUM
+        *JSR     P_REG_NUM
         RTS
         
 REG_MODE_2                  *(An)
@@ -888,12 +889,13 @@ PRINT_BASE_16
         MOVE.B  #16,D2                      ;prints data in D1 in hex
         MOVE    #15,D0
         TRAP    #15
-        CMP.B   #0,D1
+        CMP.W   #0,D1
         BNE     NOT_ZERO                    ;prints 00 for 0
         MOVE    #15,D0
         TRAP    #15
         
 NOT_ZERO
+        CLR.L   D1
         RTS
         
 *-----------------------------------------------------------
@@ -922,20 +924,21 @@ WITHIN_RANGE
 * Prints all data in memory range
 *-----------------------------------------------------------
 DISPLAY_MEMORY
-        MOVEA.L STARTING_ADDR,A6            ;move starting addr to A6
-        MOVEA.L ENDING_ADDR,A7              ;move ending addr to A7
+        MOVEA.L STARTING_ADDR,A5            ;move starting addr to A5
+        MOVEA.L ENDING_ADDR,A6              ;move ending addr to A6
         
 COUNTER_20        
         MOVE.B  #20,D3
         
 DISPLAY_MEM_LOOP
         JSR     ENDLINE                     ;endline
-        MOVE.B  (A6)+,D1                    ;load byte at addr A6 into D1
+        MOVE.W  (A5),D1                     ;load byte at addr A5 into D1
+        ADDA.L  #2,A5                       ;increment A5 by 2 since we accessed a word
         JSR     PRINT_BASE_16               ;print D1 in base 16
-        CMPA.W  A6,A7                       ;compare A6 with ending addr
-        BEQ     DISPLAY_RETURN
+        CMPA.L  A5,A6                       ;compare A6 with ending addr
+        BGE     DISPLAY_RETURN
         SUBI.B  #1,D3
-        BNE     DISPLAY_MEM_LOOP              ;repeat loop if addr not equal
+        BNE     DISPLAY_MEM_LOOP            ;repeat loop if addr not equal
         JSR     ENDLINE
         LEA     ENTER_CONT,A1
         MOVE.B  #13,D0
@@ -1039,6 +1042,9 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
+
+
 
 
 
