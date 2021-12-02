@@ -62,6 +62,7 @@ INPUT_END_ADDR_LOOP
         MOVE.W  (A2),CURRENT_OPCODE         ;data contents of starting address loaded into CURRENT_OPCODE
         ADDA.L  #2,A2                       ;increment A2 by 2 since we accessed a word
         JSR     DISPLAY_MEMORY
+        JSR     PRINT_DISASSEMBLED
         
         SIMHALT
         
@@ -897,6 +898,84 @@ PRINT_BASE_16
 NOT_ZERO
         CLR.L   D1
         RTS
+
+*-----------------------------------------------------------
+* PRINT_D2_LONG
+* PRECONDITION: None
+* Prints long word in D2
+*-----------------------------------------------------------
+PRINT_D2_LONG
+        MOVE.B  #8,D4
+
+PRINT_D2_LOOP        
+        MOVE.L  D2,D1                   ;move address into D1
+        ROR.L   #8,D1                   ;rotate address to first char
+        ROR.L   #8,D1
+        ROR.L   #8,D1
+        ROR.L   #4,D1
+        AND.L   #$0000000F,D1           ;capture first hex char
+        JSR     CHECK_HEX_ALPHA              ;detect for alpha char
+        CMP.B   #9,D1                   
+        BGT     PRINT_D2_SKIP                   ;skip trap #3 if alpha
+        MOVE.B  #3,D0                   ;prints if D1 is a number
+
+PRINT_D2_SKIP        
+        TRAP    #15                     
+        ASL.L   #4,D2                   ;removes MSB from D6
+        SUB.B   #1,D4                   ;subtract from counter
+        BNE     PRINT_D2_LOOP                   ;repeat to print whole longword addr
+        RTS
+
+*-----------------------------------------------------------
+* CHECK_HEX_ALPHA
+* PRECONDITION: None
+* Checks for alpha characters, then prints
+*-----------------------------------------------------------
+CHECK_HEX_ALPHA
+        CMP.B   #10,D1                  ;checks for hex alpha char
+        BEQ     ALPHA_A
+        CMP.B   #11,D1
+        BEQ     ALPHA_B
+        CMP.B   #12,D1
+        BEQ     ALPHA_C
+        CMP.B   #13,D1
+        BEQ     ALPHA_D
+        CMP.B   #14,D1
+        BEQ     ALPHA_E
+        CMP.B   #15,D1
+        BEQ     ALPHA_F
+        RTS
+        
+ALPHA_A
+        LEA     CHAR_A,A1                    ;prints A char
+        MOVE.B  #14,D0
+        RTS
+        
+        
+ALPHA_B
+        LEA     CHAR_B,A1                    ;prints B char
+        MOVE.B  #14,D0
+        RTS
+        
+ALPHA_C
+        LEA     CHAR_C,A1                    ;prints C char
+        MOVE.B  #14,D0
+        RTS
+        
+ALPHA_D
+        LEA     CHAR_D,A1                    ;prints D char
+        MOVE.B  #14,D0
+        RTS
+        
+ALPHA_E
+        LEA     CHAR_E,A1                    ;prints E char
+        MOVE.B  #14,D0
+        RTS
+        
+ALPHA_F
+        LEA     CHAR_F,A1                    ;prints F char
+        MOVE.B  #14,D0
+        RTS      
         
 *-----------------------------------------------------------
 * CHECK_MEM_RANGE
@@ -950,6 +1029,25 @@ DISPLAY_MEM_LOOP
 DISPLAY_RETURN
         RTS
 
+
+*-----------------------------------------------------------
+* PRINT_DISASSEMBLED
+* PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
+* Outputs disassembly to display
+*-----------------------------------------------------------
+PRINT_DISASSEMBLED
+        MOVEA.L STARTING_ADDR,A5            ;move starting addr to A5
+        MOVEA.L ENDING_ADDR,A6              ;move ending addr to A6
+        
+PD_COUNTER_20        
+        MOVE.B  #20,D3
+        
+        JSR     ENDLINE                     ;endline
+        MOVE.L  A5,D2                       ;load byte at addr A5 into D1
+        ;ADDA.L  #2,A5                       ;increment A5 by 2 since we accessed a word
+        JSR     PRINT_D2_LONG               ;print D1 in base 16
+        RTS
+
 *-----------------------------------------------------------
 * ENDLINE
 *----------------------------------------------------------- 
@@ -958,7 +1056,6 @@ ENDLINE
         MOVE    #13,D0
         TRAP    #15
         RTS
-
       
 *Table for hex characters
 CHAR_0	DC.B	'0',0
@@ -1042,6 +1139,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
