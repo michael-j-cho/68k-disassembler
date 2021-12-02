@@ -28,7 +28,7 @@ INPUT_START_ADDR
         LEA     INPUT_START_MSG,A1          ;display message to input starting addr            
         MOVE    #14,D0
         TRAP    #15
-        MOVE    #6,D7                       ;6 unit counter in d7
+        MOVE    #8,D7                       ;6 unit counter in d7
     
 INPUT_START_ADDR_LOOP
         MOVE    #5,D0                       ;read single ASCII val from the keyboard into D1.B
@@ -46,7 +46,7 @@ INPUT_END_ADDR
         LEA     INPUT_END_MSG,A1            ;display message to input ending addr
         MOVE    #14,D0                  
         TRAP    #15                         
-        MOVE    #6,D7                       ;6 unit counter in d7
+        MOVE    #8,D7                       ;6 unit counter in d7
 
 INPUT_END_ADDR_LOOP
         MOVE    #5,D0                       ;read single ASCII val from the keyboard into D1.B
@@ -1124,8 +1124,8 @@ P_HEX_SIGN      DC.B    '$',0
 P_IM_DATA_SIGN  DC.B    '#',0
 
 *Console messages
-INPUT_START_MSG     DC.W    'Please enter an 6 character starting address in hex: ',0
-INPUT_END_MSG       DC.W    'Please enter an 6 character ending address in hex: ',0
+INPUT_START_MSG     DC.W    'Please enter an 8 hex digit starting address: ',0
+INPUT_END_MSG       DC.W    'Please enter an 8 hex digit ending address: ',0
 MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
 ENTER_CONT          DC.W    'Press enter to continue...',0
 ENDL                DC.W    '',0
@@ -1139,6 +1139,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
