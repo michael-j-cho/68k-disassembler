@@ -476,7 +476,7 @@ CHECK_GROUP_D
 CHECK_FOR_ADDX  
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F130,D0
-        CMP.W   #$D100
+        CMP.W   #$D100,D0
         BEQ     INVALID_OPCODE
         ;else check for valid opcode(s)
         
@@ -1159,6 +1159,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
