@@ -469,9 +469,29 @@ CHECK_FOR_EXG
 *-----------------------------------------------------------
 *Group D
 *Checks for these valid opcodes: ADD, ADDA
+*Must first check for ADDX because of its similarity to the two
 *-----------------------------------------------------------
 CHECK_GROUP_D
 
+CHECK_FOR_ADDX  
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F130,D0
+        CMP.W   #$D100
+        BEQ     INVALID_OPCODE
+        ;else check for valid opcode(s)
+        
+CHECK_FOR_ADDA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F0F8,D0
+        CMP.W   #$D0C8,D0
+        BNE     CHECK_FOR_ADD
+        ;else
+        JSR     PRINT_ADDA
+        BRA     OPCODE_SUBROUTINE_END
+
+        ;there's only three opcodes in total, so has to be add at this point
+CHECK_FOR_ADD
+        JSR     PRINT_ADD
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group E
