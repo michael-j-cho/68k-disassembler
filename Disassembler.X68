@@ -455,16 +455,41 @@ CHECK_GROUP_B
 *Group C
 *Checks for these valid opcodes: AND
 *Must first check for EXG, ABCD, MULS, and MULU due to their similarity to AND
+*(Since its bits are so dynamic)
 *-----------------------------------------------------------
 CHECK_GROUP_C
 
 CHECK_FOR_EXG
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F130,D0
-        CMP.W   #$9100,D0
+        CMP.W   #$C100,D0
+        BEQ     INVALID_OPCODE
+        ;else check for next possible invalid opcode
+        
+CHECK_FOR_MULU
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F1C0,D0
+        CMP.W   #$C0C0,D0
+        BEQ     INVALID_OPCODE
+        ;else check for next possible invalid opcode
+        
+CHECK_FOR_MULS
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F1C0,D0
+        CMP.W   #$C1C0,D0
         BEQ     INVALID_OPCODE
         ;else check for next possible invalid opcode
 
+CHECK_FOR_ABCD
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F1F0,D0
+        CMP.W   #$C100,D0
+        BEQ     INVALID_OPCODE
+        ;else it's AND
+
+CHECK_FOR_AND ;it's AND at this point
+        JSR     PRINT_AND
+        JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group D
