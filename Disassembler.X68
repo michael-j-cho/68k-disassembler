@@ -841,7 +841,7 @@ OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 
 P_SOURCE_EA_MODE
-        LEA     REG_MODE_TABLE,A5
+        LEA     REG_MODE_TABLE,A5 *load register mode table into A5
         MOVE.W  SOURCE_MODE,D6
         MOVE.W  SOURCE_VAR,TEMP
         MULU    #6,D6
@@ -875,12 +875,12 @@ REG_MODE_TABLE
 
 REG_MODE_0                  *Dn
         JSR     P_DATA_REG
-        *JSR     P_REG_NUM
+        JSR     P_REG_NUM
         RTS
         
 REG_MODE_1                  *An
         JSR     P_ADDR_REG
-        *JSR     P_REG_NUM
+        JSR     P_REG_NUM
         RTS
         
 REG_MODE_2                  *(An)
@@ -908,6 +908,32 @@ REG_MODE_6                  *absolute long address (xxx).L
 REG_MODE_7                  *absolute word address (xxx).W
         *wasn't sure how to do
 
+
+P_REG_NUM
+        LEA         HEX_TABLE,A5
+        MOVE.W      TEMP,D4
+        MULU        #6,D3
+        JSR         0(A5,D4)
+        RTS
+
+
+HEX_TABLE
+        JMP         P_CHAR_0
+        JMP         P_CHAR_1
+        JMP         P_CHAR_2
+        JMP         P_CHAR_3
+        JMP         P_CHAR_4
+        JMP         P_CHAR_5
+        JMP         P_CHAR_6
+        JMP         P_CHAR_7
+        JMP         P_CHAR_8
+        JMP         P_CHAR_9
+        JMP         P_CHAR_A
+        JMP         P_CHAR_B
+        JMP         P_CHAR_C
+        JMP         P_CHAR_D
+        JMP         P_CHAR_E
+        JMP         P_CHAR_F
 
 *-----------------------------------------------------------
 * CONVERT_TO_HEX
@@ -1103,22 +1129,22 @@ ENDLINE
         RTS
       
 *Table for hex characters
-CHAR_0	DC.B	'0',0
-CHAR_1	DC.B	'1',0
-CHAR_2	DC.B	'2',0
-CHAR_3	DC.B	'3',0
-CHAR_4	DC.B	'4',0
-CHAR_5	DC.B	'5',0
-CHAR_6	DC.B	'6',0
-CHAR_7	DC.B	'7',0
-CHAR_8	DC.B	'8',0
-CHAR_9	DC.B	'9',0
-CHAR_A	DC.B	'A',0
-CHAR_B	DC.B	'B',0
-CHAR_C	DC.B	'C',0
-CHAR_D	DC.B	'D',0
-CHAR_E	DC.B	'E',0
-CHAR_F	DC.B	'F',0
+P_CHAR_0	DC.B	'0',0
+P_CHAR_1	DC.B	'1',0
+P_CHAR_2	DC.B	'2',0
+P_CHAR_3	DC.B	'3',0
+P_CHAR_4	DC.B	'4',0
+P_CHAR_5	DC.B	'5',0
+P_CHAR_6	DC.B	'6',0
+P_CHAR_7	DC.B	'7',0
+P_CHAR_8	DC.B	'8',0
+P_CHAR_9	DC.B	'9',0
+P_CHAR_A	DC.B	'A',0
+P_CHAR_B	DC.B	'B',0
+P_CHAR_C	DC.B	'C',0
+P_CHAR_D	DC.B	'D',0
+P_CHAR_E	DC.B	'E',0
+P_CHAR_F	DC.B	'F',0
 
 *table for opcode constants
 P_INVALID       DC.B    '   DATA   $',0
@@ -1184,6 +1210,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
