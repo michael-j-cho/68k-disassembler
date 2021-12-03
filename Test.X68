@@ -11,14 +11,12 @@ START:                  ; first instruction of program
 
     MOVE.B  D0,D1
     MOVE.B  D2,D3
-    MOVE.B  $1000,D5
     
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
 
     END    START        ; last line of source
-
 
 *~Font name~Courier New~
 *~Font size~10~
