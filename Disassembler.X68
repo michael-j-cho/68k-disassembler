@@ -842,11 +842,7 @@ OPCODE_SUBROUTINE_END
 
 *TODO: check what kind of opcode and branch to correct mode table
 P_SOURCE_EA_MODE
-<<<<<<< Updated upstream
-        LEA     REG_MODE_TABLE,A5 *load register mode table into A5
-=======
         LEA     MOVE_REG_MODE_TABLE,A5 *load register mode table into A5
->>>>>>> Stashed changes
         MOVE.W  SOURCE_MODE,D6
         MOVE.W  SOURCE_VAR,TEMP
         MULU    #6,D6
@@ -863,7 +859,7 @@ P_DEST_EA_MODE
 
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
-*REGISTER MODE TABLE
+*REGISTER MODE TABLE (MOVE)
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
 * put instruction length in D6
@@ -928,10 +924,21 @@ CHECK_ABS_IMM               *check if absolute (word or long) address or immedia
 
 REG_MODE_6                  *absolute long address (xxx).L
         JSR     P_DOLLAR_SIGN
-
+        BEQ     IMM_LONG
+        RTS
+ 
 REG_MODE_7                  *absolute word address (xxx).W
         JSR     P_DOLLAR_SIGN
-
+        BEQ     IMM_WORD
+        RTS
+        
+*-----------------------------------------------------------
+*///////////////////////////////////////////////////////////
+*REGISTER MODE TABLE (LSL, LSR, ROL, ROR, ASL, ASR)
+*///////////////////////////////////////////////////////////
+*-----------------------------------------------------------
+* put instruction length in D6
+* put register number in D2
 
 P_REG_NUM
         LEA         HEX_TABLE,A5
@@ -940,10 +947,6 @@ P_REG_NUM
         JSR         0(A5,D4)
         RTS
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 HEX_TABLE
         JMP         P_CHAR_0
         JMP         P_CHAR_1
@@ -1250,10 +1253,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
 
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~
