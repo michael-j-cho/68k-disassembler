@@ -840,8 +840,13 @@ OPCODE_SUBROUTINE_END
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
 
+*TODO: check what kind of opcode and branch to correct mode table
 P_SOURCE_EA_MODE
+<<<<<<< Updated upstream
         LEA     REG_MODE_TABLE,A5 *load register mode table into A5
+=======
+        LEA     MOVE_REG_MODE_TABLE,A5 *load register mode table into A5
+>>>>>>> Stashed changes
         MOVE.W  SOURCE_MODE,D6
         MOVE.W  SOURCE_VAR,TEMP
         MULU    #6,D6
@@ -849,7 +854,7 @@ P_SOURCE_EA_MODE
         RTS
 
 P_DEST_EA_MODE
-        LEA     REG_MODE_TABLE,A5
+        LEA     MOVE_REG_MODE_TABLE,A5
         MOVE.W  DEST_MODE,D6
         MOVE.W  DEST_VAR,TEMP
         MULU    #6,D6
@@ -861,8 +866,10 @@ P_DEST_EA_MODE
 *REGISTER MODE TABLE
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
+* put instruction length in D6
+* put register number in D2
 
-REG_MODE_TABLE
+MOVE_REG_MODE_TABLE
         JMP     REG_MODE_0  *Dn
         JMP     REG_MODE_1  *An
         JMP     REG_MODE_2  *(An)
@@ -871,7 +878,6 @@ REG_MODE_TABLE
         JMP     REG_MODE_5  *-(An)
         JMP     REG_MODE_6  *(xxx).L
         JMP     REG_MODE_7  *(xxx).W
-
 
 REG_MODE_0                  *Dn
         JSR     P_DATA_REG
@@ -890,7 +896,17 @@ REG_MODE_2                  *(An)
         RTS
 
 REG_MODE_3                  *immediate data #<xxx>
-        *wasn't sure how to do
+        JSR     P_IMMED_SIGN *#$
+        CMP.B   #3,D6       *instruction size is word
+        BEQ     IMM_WORD
+        CMP.B   #2,D6       *instruction size is word
+        BEQ     IMM_LONG
+        
+IMM_LONG                    *immediate long
+        * TODO: get immediate long value
+
+IMM_WORD                    *immediate word
+        *TODO: get immediate word value
 
 REG_MODE_4                  *(An)+
         JSR     REG_MODE_2
@@ -902,11 +918,19 @@ REG_MODE_5                  *-(An)
         JSR     REG_MODE_2
         RTS
 
+CHECK_ABS_IMM               *check if absolute (word or long) address or immediate data
+        CMP.B   #4,D2       *immediate data
+        BEQ     REG_MODE_3        
+        CMP.B   #0,D2       *absolute long
+        BEQ     REG_MODE_6
+        CMP.B   #1,D2       *absolute word
+        BEQ     REG_MODE_7
+
 REG_MODE_6                  *absolute long address (xxx).L
-        *wasn't sure how to do
+        JSR     P_DOLLAR_SIGN
 
 REG_MODE_7                  *absolute word address (xxx).W
-        *wasn't sure how to do
+        JSR     P_DOLLAR_SIGN
 
 
 P_REG_NUM
@@ -916,7 +940,10 @@ P_REG_NUM
         JSR         0(A5,D4)
         RTS
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 HEX_TABLE
         JMP         P_CHAR_0
         JMP         P_CHAR_1
@@ -1018,33 +1045,33 @@ CHECK_HEX_ALPHA
         RTS
         
 ALPHA_A
-        LEA     CHAR_A,A1                    ;prints A char
+        LEA     P_CHAR_A,A1                    ;prints A char
         MOVE.B  #14,D0
         RTS
         
         
 ALPHA_B
-        LEA     CHAR_B,A1                    ;prints B char
+        LEA     P_CHAR_B,A1                    ;prints B char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_C
-        LEA     CHAR_C,A1                    ;prints C char
+        LEA     P_CHAR_C,A1                    ;prints C char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_D
-        LEA     CHAR_D,A1                    ;prints D char
+        LEA     P_CHAR_D,A1                    ;prints D char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_E
-        LEA     CHAR_E,A1                    ;prints E char
+        LEA     P_CHAR_E,A1                    ;prints E char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_F
-        LEA     CHAR_F,A1                    ;prints F char
+        LEA     P_CHAR_F,A1                    ;prints F char
         MOVE.B  #14,D0
         RTS      
         
@@ -1191,8 +1218,8 @@ P_DOT_LONG      DC.B    '.L'
 
 P_COMMA         DC.B    ',',0
 P_BIN_SIGN      DC.B    '%',0
-P_HEX_SIGN      DC.B    '$',0
-P_IM_DATA_SIGN  DC.B    '#',0
+P_DOLLAR_SIGN   DC.B    '$',0
+P_IMMED_SIGN    DC.B    '#$',0
 
 *Console messages
 INPUT_START_MSG     DC.W    'Please enter an 8 hex digit starting address: ',0
@@ -1223,6 +1250,10 @@ SIZE_TO_PRINT       DS.W    1
 
 
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~
