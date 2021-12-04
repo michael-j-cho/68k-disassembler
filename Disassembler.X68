@@ -1068,6 +1068,10 @@ IS_END
 *-----------------------------------------------------------      
 
 END
+        JSR     ENDLINE
+        LEA     END_MSG,A1
+        MOVE.B  #13,D0
+        TRAP    #15
         SIMHALT
 
 GET_NEXT_SET
@@ -1253,6 +1257,7 @@ INPUT_START_MSG     DC.W    'Please enter an 8 hex digit starting address: ',0
 INPUT_END_MSG       DC.W    'Please enter an 8 hex digit ending address: ',0
 MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
 ENTER_CONT          DC.W    'Press enter to continue...',0
+END_MSG             DC.W    'Reached the end of test program!',0
 ENDL                DC.W    '',0
 
 *Variables
@@ -1264,6 +1269,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
