@@ -11,6 +11,7 @@ DEST_MODE       EQU     $500
 SOURCE_VAR      EQU     $550
 SOURCE_MODE     EQU     $600
 TEMP            EQU     $650
+WORD_MEM        EQU     $700
         
     
 START ORG    $1000
@@ -39,6 +40,7 @@ INPUT_START_ADDR_LOOP
         SUBQ    #1,D7                       ;decrement counter
         BNE     INPUT_START_ADDR_LOOP       ;repeat this loop  
         MOVE.L  D2,STARTING_ADDR            ;move D2 into STARTING_ADDR at $350
+        CLR.L   D2                          ;clear D2 so it doesn't interrupt when there is a reinput of address
     
 INPUT_END_ADDR
         JSR     ENDLINE                        
@@ -56,13 +58,16 @@ INPUT_END_ADDR_LOOP
         ADD.L   D1,D2                       ;add hex value to D2
         SUBQ    #1,D7                       ;decrement counter
         BNE     INPUT_END_ADDR_LOOP         ;repeat this loop 
-        MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400     
-        
+        MOVE.L  D2,ENDING_ADDR              ;move D2 into ENDING_ADDR at $400    
+        CLR.L   D2                          ;clear D2 so it doesn't interrupt when there is a reinput of address
         JSR     CHECK_MEM_RANGE
-        MOVE.W  (A2),CURRENT_OPCODE         ;data contents of starting address loaded into CURRENT_OPCODE
-        ADDA.L  #2,A2                       ;increment A2 by 2 since we accessed a word
-        JSR     DISPLAY_MEMORY
-        JSR     PRINT_DISASSEMBLED
+        
+DECODE_OPCODE
+        JSR     GET_NEXT_SET                ;D3 is set as counter here, only executes when D3 is #20
+        JSR     PRINT_MEM_ADDR
+        JSR     GET_MACHINE_WORD
+        BRA     DECODE_OPCODE
+END
         
         SIMHALT
         
@@ -91,6 +96,10 @@ INPUT_END_ADDR_LOOP
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
 OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at highest 4 bits
+        JSR     GET_NEXT_SET
+        JSR     PRINT_MEM_ADDR
+        JSR     GET_MACHINE_WORD
+
         MOVE.W  CURRENT_OPCODE,D0
         MOVE.B  #1,OPCODE_VALIDITY ;default validity to 1 (valid)
         MOVE.B  #12,D1
@@ -1049,6 +1058,48 @@ ALPHA_F
         RTS      
         
 *-----------------------------------------------------------
+* GET_MACHINE_WORD
+* PRECONDITION: (A2) is filled with machine code
+* Saves the current word machine code, ends the program when there is none.
+*-----------------------------------------------------------        
+GET_MACHINE_WORD
+        MOVE.W  (A2)+,D7
+        JSR     IS_END
+        RTS
+        
+*-----------------------------------------------------------
+* IS_END
+* PRECONDITION: A2 contains current address, A3 contains end address.
+* Checks if disassembler is at the end of the test program.
+*-----------------------------------------------------------   
+IS_END
+        CMPA.L  A2,A3
+        BLE     END
+        RTS
+*-----------------------------------------------------------
+* GET_NEXT_SET
+* PRECONDITION: STARTING_ADDR != ENDING_ADDR
+* Decodes the next 20 machine code, and prompts to continue if program hasn't ended
+*-----------------------------------------------------------      
+GET_NEXT_SET
+        ADDI.B  #1,D3
+        CMPI.B  #20,D3
+        BEQ     USER_ENTER_CONT
+        RTS
+*-----------------------------------------------------------
+* USER_ENTER_CONT
+* PRECONDITION: None
+* Let users press enter to continue decoding
+*-----------------------------------------------------------  
+USER_ENTER_CONT
+        JSR     ENDLINE
+        LEA     ENTER_CONT,A1
+        MOVE.B  #13,D0
+        CLR.B   D3      ;clear counter for next iteration
+        MOVE.B  #5,D0   ;allow user to press enter
+        TRAP    #15
+        RTS
+*-----------------------------------------------------------
 * CHECK_MEM_RANGE
 * PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
 * Checks if memory inputs are valid
@@ -1102,22 +1153,27 @@ DISPLAY_RETURN
 
 
 *-----------------------------------------------------------
-* PRINT_DISASSEMBLED
-* PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
-* Outputs disassembly to display
+* PRINT_MEM_ADDR
+* PRECONDITION: A2 filled with an addresss
+* Outputs latest memory of test program
 *-----------------------------------------------------------
-PRINT_DISASSEMBLED
-        MOVEA.L STARTING_ADDR,A5            ;move starting addr to A5
-        MOVEA.L ENDING_ADDR,A6              ;move ending addr to A6
+PRINT_MEM_ADDR
+        JSR     ENDLINE
+        MOVE.L  A2,D2
+        JSR     PRINT_D2_LONG
+        RTS
         
 PD_COUNTER_20        
         MOVE.B  #20,D3
-        
         JSR     ENDLINE                     ;endline
-        MOVE.L  A5,D2                       ;load byte at addr A5 into D1
-        ;ADDA.L  #2,A5                       ;increment A5 by 2 since we accessed a word
+        MOVE.L  A2,D2                       ;load byte at addr A5 into D1
         JSR     PRINT_D2_LONG               ;print D1 in base 16
+        CMPA.L  A5,A6
+        BLE     END
+        SUBI.B  #1,D3
         RTS
+        
+
 
 *-----------------------------------------------------------
 * ENDLINE
