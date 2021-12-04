@@ -66,10 +66,6 @@ DECODE_OPCODE
         JSR     GET_NEXT_SET                ;D3 is set as counter here, only executes when D3 is #20
         JSR     PRINT_MEM_ADDR
         JSR     GET_MACHINE_WORD
-        BRA     DECODE_OPCODE
-END
-        
-        SIMHALT
         
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
@@ -96,10 +92,6 @@ END
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
 OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at highest 4 bits
-        JSR     GET_NEXT_SET
-        JSR     PRINT_MEM_ADDR
-        JSR     GET_MACHINE_WORD
-
         MOVE.W  CURRENT_OPCODE,D0
         MOVE.B  #1,OPCODE_VALIDITY ;default validity to 1 (valid)
         MOVE.B  #12,D1
@@ -677,30 +669,50 @@ PRINT_LONG
 
 *-----Group 1-----*
 PRINT_MOVEB
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Byte,SIZE_TO_PRINT
+        LEA     P_MOVE,A1
+        JSR     PRINT_INLINE
+        LEA     P_BYTE,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Byte,SIZE_TO_PRINT
         RTS
 
 *-----Group 2-----*
 PRINT_MOVEL
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        LEA     P_MOVE,A1
+        JSR     PRINT_INLINE
+        LEA     P_LONG,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
         
 PRINT_MOVEAL
-        MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        LEA     P_MOVEA,A1
+        JSR     PRINT_INLINE
+        LEA     P_LONG,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
 
 *-----Group 3-----*
 PRINT_MOVEW
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        LEA     P_MOVE,A1
+        JSR     PRINT_INLINE
+        LEA     P_WORD,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
         
 PRINT_MOVEAW
-        MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        LEA     P_MOVEA,A1
+        JSR     PRINT_INLINE
+        LEA     P_WORD,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
 
 *-----Group 4-----*
@@ -840,8 +852,8 @@ OPCODE_SUBROUTINE_END
         CMP.B   #1,OPCODE_VALIDITY
         *branch to some printing method if it's not equal (to print that it's invalid)
         *branch to parse ea if it's equal to check further
-        
-        RTS
+        JSR     IS_END
+        BRA     DECODE_OPCODE
 
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
@@ -1037,8 +1049,7 @@ ALPHA_F
 * Saves the current word machine code, ends the program when there is none.
 *-----------------------------------------------------------        
 GET_MACHINE_WORD
-        MOVE.W  (A2)+,D7
-        JSR     IS_END
+        MOVE.W  (A2)+,CURRENT_OPCODE
         RTS
         
 *-----------------------------------------------------------
@@ -1055,6 +1066,10 @@ IS_END
 * PRECONDITION: STARTING_ADDR != ENDING_ADDR
 * Decodes the next 20 machine code, and prompts to continue if program hasn't ended
 *-----------------------------------------------------------      
+
+END
+        SIMHALT
+
 GET_NEXT_SET
         ADDI.B  #1,D3
         CMPI.B  #20,D3
@@ -1066,11 +1081,12 @@ GET_NEXT_SET
 * Let users press enter to continue decoding
 *-----------------------------------------------------------  
 USER_ENTER_CONT
-        JSR     ENDLINE
-        LEA     ENTER_CONT,A1
+        JSR     ENDLINE         ;prints new line
+        LEA     ENTER_CONT,A1   ;load message
         MOVE.B  #13,D0
-        CLR.B   D3      ;clear counter for next iteration
-        MOVE.B  #5,D0   ;allow user to press enter
+        TRAP    #15
+        CLR.B   D3              ;clear counter for next iteration
+        MOVE.B  #5,D0           ;allow user to press enter
         TRAP    #15
         RTS
 *-----------------------------------------------------------
@@ -1147,7 +1163,15 @@ PD_COUNTER_20
         SUBI.B  #1,D3
         RTS
         
-
+*-----------------------------------------------------------
+* PRINT_INLINE
+* PRECONDITION: (A1) is filled with a null terminated string.
+* Helper function to print without CR,LF.
+*-----------------------------------------------------------
+PRINT_INLINE
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
 
 *-----------------------------------------------------------
 * ENDLINE
