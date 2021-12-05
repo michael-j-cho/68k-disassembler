@@ -775,19 +775,27 @@ PRINT_BRA
 
 *-----Group 7-----*
 PRINT_MOVEQ ;only does longs
-        MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
-        MOVE.L  #P_LONG,SIZE_TO_PRINT
+        LEA     P_MOVEQ,A1
+        JSR     PRINT_INLINE
+        LEA     P_LONG,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
+        ;MOVE.L  #P_LONG,SIZE_TO_PRINT
         RTS
 
 *-----Group 8-----*
 PRINT_OR
-        MOVE.L  #P_OR,OPCODE_TO_PRINT
+        LEA     P_OR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_OR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
         
 *-----Group 9-----*
 PRINT_SUB
-        MOVE.L  #P_SUB,OPCODE_TO_PRINT
+        LEA     P_SUB,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_SUB,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -797,49 +805,67 @@ PRINT_SUB
 
 *-----Group C-----*
 PRINT_AND
-        MOVE.L  #P_AND,OPCODE_TO_PRINT
+        LEA     P_AND,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_AND,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 *-----Group D-----*
 PRINT_ADD
-        MOVE.L  #P_ADD,OPCODE_TO_PRINT
+        LEA     P_ADD,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ADD,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ADDA
-        MOVE.L  #P_ADDA,OPCODE_TO_PRINT
+        LEA     P_ADDA,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ADDA,OPCODE_TO_PRINT
         ;JSR     PRINT_ADDA_SIZE ;ADDA has special size location, make special method to handle it
         RTS
 
 *-----Group E-----*
 PRINT_LSR
-        MOVE.L  #P_LSR,OPCODE_TO_PRINT
+        LEA     P_LSR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_LSR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_LSL
-        MOVE.L  #P_LSL,OPCODE_TO_PRINT
+        LEA     P_LSL,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_LSL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASR
-        MOVE.L  #P_ASR,OPCODE_TO_PRINT
+        LEA     P_ASR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ASR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASL
-        MOVE.L  #P_ASL,OPCODE_TO_PRINT
+        LEA     P_ASL,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ASL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ROL
-        MOVE.L  #P_ROL,OPCODE_TO_PRINT
+        LEA     P_ROL,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ROL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ROR
-        MOVE.L  #P_ROR,OPCODE_TO_PRINT
+        LEA     P_ROR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ROR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
