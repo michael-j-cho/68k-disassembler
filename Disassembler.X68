@@ -66,10 +66,6 @@ DECODE_OPCODE
         JSR     GET_NEXT_SET                ;D3 is set as counter here, only executes when D3 is #20
         JSR     PRINT_MEM_ADDR
         JSR     GET_MACHINE_WORD
-        BRA     DECODE_OPCODE
-END
-        
-        SIMHALT
         
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
@@ -96,10 +92,6 @@ END
 *///////////////////////////////////////////////////////////
 *-----------------------------------------------------------
 OPCODE_SUBROUTINE_START ;move opcode to register and shift right to look at highest 4 bits
-        JSR     GET_NEXT_SET
-        JSR     PRINT_MEM_ADDR
-        JSR     GET_MACHINE_WORD
-
         MOVE.W  CURRENT_OPCODE,D0
         MOVE.B  #1,OPCODE_VALIDITY ;default validity to 1 (valid)
         MOVE.B  #12,D1
@@ -205,7 +197,7 @@ CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the addressi
         MOVE.W  #6,D1
         LSR.W   D1,D0
         MOVE.W  D0,D1
-        CMP.W   #$1,D2
+        CMP.W   #$1,D0
         BNE     CHECK_FOR_MOVEL
         ;else
         JSR     PRINT_MOVEAL    ;MOVEAL
@@ -234,7 +226,7 @@ CHECK_FOR_MOVEAW ;MOVEAW has a slight difference from MOVEW in that the address 
         MOVE.W  #6,D1
         LSR.W   D1,D0
         MOVE.W  D0,D1
-        CMP.W   #$1,D2
+        CMP.W   #$1,D0
         BNE     CHECK_FOR_MOVEW
         ;else
         JSR     PRINT_MOVEAW
@@ -330,11 +322,11 @@ CHECK_GROUP_5
 CHECK_FOR_ADDQ
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F100,D0
-        CMP.W   #$5100,D0
+        CMP.W   #$5000,D0
         BNE     INVALID_OPCODE
         ;else
-        JSR     PRINT_ADDQ
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_ADDQ
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 6
@@ -420,8 +412,8 @@ CHECK_FOR_SBCD
         ;else it's OR
 
 CHECK_FOR_OR    ;must be OR
-        JSR     PRINT_OR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_OR
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 9
@@ -497,8 +489,8 @@ CHECK_FOR_ABCD
         ;else it's AND
 
 CHECK_FOR_AND ;it's AND at this point
-        JSR     PRINT_AND
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_AND
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group D
@@ -663,44 +655,65 @@ PRINT_SIZE
         BRA     PRINT_LONG
 
 PRINT_BYTE
-        MOVE.W  #P_BYTE,SIZE_TO_PRINT
+        LEA     P_BYTE,A1
+        JSR     PRINT_INLINE
+        ;MOVE.W  #P_BYTE,SIZE_TO_PRINT
         RTS
 
 PRINT_WORD
-        MOVE.W  #P_WORD,SIZE_TO_PRINT
+        LEA     P_WORD,A1
+        JSR     PRINT_INLINE
+        ;MOVE.W  #P_WORD,SIZE_TO_PRINT
         RTS
 
 PRINT_LONG
-        MOVE.W  #P_LONG,SIZE_TO_PRINT
+        LEA     P_LONG,A1
+        JSR     PRINT_INLINE
+        ;MOVE.W  #P_LONG,SIZE_TO_PRINT
         RTS
 *-----Group 0 - nothing to print-----*
 
 *-----Group 1-----*
 PRINT_MOVEB
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Byte,SIZE_TO_PRINT
+        LEA     P_MOVE,A1
+        JSR     PRINT_INLINE
+        JSR     PRINT_BYTE
+        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Byte,SIZE_TO_PRINT
         RTS
 
 *-----Group 2-----*
 PRINT_MOVEL
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        LEA     P_MOVE,A1
+        JSR     PRINT_INLINE
+        JSR     PRINT_LONG
+        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
         
 PRINT_MOVEAL
-        MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        LEA     P_MOVEA,A1
+        JSR     PRINT_INLINE
+        JSR     PRINT_LONG
+        ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
 
 *-----Group 3-----*
 PRINT_MOVEW
-        MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        LEA     P_MOVE,A1
+        JSR     PRINT_INLINE
+        JSR     PRINT_WORD
+        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
         
 PRINT_MOVEAW
-        MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        LEA     P_MOVEA,A1
+        JSR     PRINT_INLINE
+        JSR     PRINT_WORD
+        ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
+        ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
 
 *-----Group 4-----*
@@ -737,42 +750,60 @@ PRINT_NOP
 
 *-----Group 5-----*
 PRINT_ADDQ
-        MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
+        LEA     P_ADDQ,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 *-----Group 6-----*
 PRINT_BGT
-        MOVE.L  #P_BGT,OPCODE_TO_PRINT
+        LEA     P_BGT,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BGT,OPCODE_TO_PRINT
         RTS
 
 PRINT_BLT
-        MOVE.L  #P_BLT,OPCODE_TO_PRINT
+        LEA     P_BLT,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BLT,OPCODE_TO_PRINT
         RTS
 
 PRINT_BEQ
-        MOVE.L  #P_BEQ,OPCODE_TO_PRINT
+        LEA     P_BEQ,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BEQ,OPCODE_TO_PRINT
         RTS
 
 PRINT_BRA
-        MOVE.L  #P_BRA,OPCODE_TO_PRINT
+        LEA     P_BRA,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BRA,OPCODE_TO_PRINT
         RTS
 
 *-----Group 7-----*
 PRINT_MOVEQ ;only does longs
-        MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
-        MOVE.L  #P_LONG,SIZE_TO_PRINT
+        LEA     P_MOVEQ,A1
+        JSR     PRINT_INLINE
+        LEA     P_LONG,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
+        ;MOVE.L  #P_LONG,SIZE_TO_PRINT
         RTS
 
 *-----Group 8-----*
 PRINT_OR
-        MOVE.L  #P_OR,OPCODE_TO_PRINT
+        LEA     P_OR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_OR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
         
 *-----Group 9-----*
 PRINT_SUB
-        MOVE.L  #P_SUB,OPCODE_TO_PRINT
+        LEA     P_SUB,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_SUB,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -782,49 +813,67 @@ PRINT_SUB
 
 *-----Group C-----*
 PRINT_AND
-        MOVE.L  #P_AND,OPCODE_TO_PRINT
+        LEA     P_AND,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_AND,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 *-----Group D-----*
 PRINT_ADD
-        MOVE.L  #P_ADD,OPCODE_TO_PRINT
+        LEA     P_ADD,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ADD,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ADDA
-        MOVE.L  #P_ADDA,OPCODE_TO_PRINT
+        LEA     P_ADDA,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ADDA,OPCODE_TO_PRINT
         ;JSR     PRINT_ADDA_SIZE ;ADDA has special size location, make special method to handle it
         RTS
 
 *-----Group E-----*
 PRINT_LSR
-        MOVE.L  #P_LSR,OPCODE_TO_PRINT
+        LEA     P_LSR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_LSR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_LSL
-        MOVE.L  #P_LSL,OPCODE_TO_PRINT
+        LEA     P_LSL,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_LSL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASR
-        MOVE.L  #P_ASR,OPCODE_TO_PRINT
+        LEA     P_ASR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ASR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASL
-        MOVE.L  #P_ASL,OPCODE_TO_PRINT
+        LEA     P_ASL,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ASL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ROL
-        MOVE.L  #P_ROL,OPCODE_TO_PRINT
+        LEA     P_ROL,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ROL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ROR
-        MOVE.L  #P_ROR,OPCODE_TO_PRINT
+        LEA     P_ROR,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ROR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -840,8 +889,8 @@ OPCODE_SUBROUTINE_END
         CMP.B   #1,OPCODE_VALIDITY
         *branch to some printing method if it's not equal (to print that it's invalid)
         *branch to parse ea if it's equal to check further
-        
-        RTS
+        JSR     IS_END
+        BRA     DECODE_OPCODE
 
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
@@ -1063,8 +1112,7 @@ ALPHA_F
 * Saves the current word machine code, ends the program when there is none.
 *-----------------------------------------------------------        
 GET_MACHINE_WORD
-        MOVE.W  (A2)+,D7
-        JSR     IS_END
+        MOVE.W  (A2)+,CURRENT_OPCODE
         RTS
         
 *-----------------------------------------------------------
@@ -1081,6 +1129,14 @@ IS_END
 * PRECONDITION: STARTING_ADDR != ENDING_ADDR
 * Decodes the next 20 machine code, and prompts to continue if program hasn't ended
 *-----------------------------------------------------------      
+
+END
+        JSR     ENDLINE
+        LEA     END_MSG,A1
+        MOVE.B  #13,D0
+        TRAP    #15
+        SIMHALT
+
 GET_NEXT_SET
         ADDI.B  #1,D3
         CMPI.B  #20,D3
@@ -1092,11 +1148,12 @@ GET_NEXT_SET
 * Let users press enter to continue decoding
 *-----------------------------------------------------------  
 USER_ENTER_CONT
-        JSR     ENDLINE
-        LEA     ENTER_CONT,A1
+        JSR     ENDLINE         ;prints new line
+        LEA     ENTER_CONT,A1   ;load message
         MOVE.B  #13,D0
-        CLR.B   D3      ;clear counter for next iteration
-        MOVE.B  #5,D0   ;allow user to press enter
+        TRAP    #15
+        CLR.B   D3              ;clear counter for next iteration
+        MOVE.B  #5,D0           ;allow user to press enter
         TRAP    #15
         RTS
 *-----------------------------------------------------------
@@ -1173,7 +1230,15 @@ PD_COUNTER_20
         SUBI.B  #1,D3
         RTS
         
-
+*-----------------------------------------------------------
+* PRINT_INLINE
+* PRECONDITION: (A1) is filled with a null terminated string.
+* Helper function to print without CR,LF.
+*-----------------------------------------------------------
+PRINT_INLINE
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
 
 *-----------------------------------------------------------
 * ENDLINE
@@ -1255,6 +1320,7 @@ INPUT_START_MSG     DC.W    'Please enter an 8 hex digit starting address: ',0
 INPUT_END_MSG       DC.W    'Please enter an 8 hex digit ending address: ',0
 MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
 ENTER_CONT          DC.W    'Press enter to continue...',0
+END_MSG             DC.W    'Reached the end of test program!',0
 ENDL                DC.W    '',0
 
 *Variables
@@ -1266,6 +1332,9 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
+
+
 
 
 
