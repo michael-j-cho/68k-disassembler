@@ -412,8 +412,8 @@ CHECK_FOR_SBCD
         ;else it's OR
 
 CHECK_FOR_OR    ;must be OR
-        JSR     PRINT_OR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_OR
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 9
@@ -758,19 +758,27 @@ PRINT_ADDQ
 
 *-----Group 6-----*
 PRINT_BGT
-        MOVE.L  #P_BGT,OPCODE_TO_PRINT
+        LEA     P_BGT,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BGT,OPCODE_TO_PRINT
         RTS
 
 PRINT_BLT
-        MOVE.L  #P_BLT,OPCODE_TO_PRINT
+        LEA     P_BLT,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BLT,OPCODE_TO_PRINT
         RTS
 
 PRINT_BEQ
-        MOVE.L  #P_BEQ,OPCODE_TO_PRINT
+        LEA     P_BEQ,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BEQ,OPCODE_TO_PRINT
         RTS
 
 PRINT_BRA
-        MOVE.L  #P_BRA,OPCODE_TO_PRINT
+        LEA     P_BRA,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_BRA,OPCODE_TO_PRINT
         RTS
 
 *-----Group 7-----*
