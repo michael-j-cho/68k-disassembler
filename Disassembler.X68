@@ -489,8 +489,8 @@ CHECK_FOR_ABCD
         ;else it's AND
 
 CHECK_FOR_AND ;it's AND at this point
-        JSR     PRINT_AND
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_AND
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group D
