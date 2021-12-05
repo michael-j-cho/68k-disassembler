@@ -197,7 +197,7 @@ CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the addressi
         MOVE.W  #6,D1
         LSR.W   D1,D0
         MOVE.W  D0,D1
-        CMP.W   #$1,D2
+        CMP.W   #$1,D0
         BNE     CHECK_FOR_MOVEL
         ;else
         JSR     PRINT_MOVEAL    ;MOVEAL
@@ -226,7 +226,7 @@ CHECK_FOR_MOVEAW ;MOVEAW has a slight difference from MOVEW in that the address 
         MOVE.W  #6,D1
         LSR.W   D1,D0
         MOVE.W  D0,D1
-        CMP.W   #$1,D2
+        CMP.W   #$1,D0
         BNE     CHECK_FOR_MOVEW
         ;else
         JSR     PRINT_MOVEAW
@@ -322,11 +322,11 @@ CHECK_GROUP_5
 CHECK_FOR_ADDQ
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F100,D0
-        CMP.W   #$5100,D0
+        CMP.W   #$5000,D0
         BNE     INVALID_OPCODE
         ;else
-        JSR     PRINT_ADDQ
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_ADDQ
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 6
@@ -655,15 +655,21 @@ PRINT_SIZE
         BRA     PRINT_LONG
 
 PRINT_BYTE
-        MOVE.W  #P_BYTE,SIZE_TO_PRINT
+        LEA     P_BYTE,A1
+        JSR     PRINT_INLINE
+        ;MOVE.W  #P_BYTE,SIZE_TO_PRINT
         RTS
 
 PRINT_WORD
-        MOVE.W  #P_WORD,SIZE_TO_PRINT
+        LEA     P_WORD,A1
+        JSR     PRINT_INLINE
+        ;MOVE.W  #P_WORD,SIZE_TO_PRINT
         RTS
 
 PRINT_LONG
-        MOVE.W  #P_LONG,SIZE_TO_PRINT
+        LEA     P_LONG,A1
+        JSR     PRINT_INLINE
+        ;MOVE.W  #P_LONG,SIZE_TO_PRINT
         RTS
 *-----Group 0 - nothing to print-----*
 
@@ -671,8 +677,7 @@ PRINT_LONG
 PRINT_MOVEB
         LEA     P_MOVE,A1
         JSR     PRINT_INLINE
-        LEA     P_BYTE,A1
-        JSR     PRINT_INLINE
+        JSR     PRINT_BYTE
         ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
         ;MOVE.L  #P_Byte,SIZE_TO_PRINT
         RTS
@@ -681,8 +686,7 @@ PRINT_MOVEB
 PRINT_MOVEL
         LEA     P_MOVE,A1
         JSR     PRINT_INLINE
-        LEA     P_LONG,A1
-        JSR     PRINT_INLINE
+        JSR     PRINT_LONG
         ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
         ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
@@ -690,8 +694,7 @@ PRINT_MOVEL
 PRINT_MOVEAL
         LEA     P_MOVEA,A1
         JSR     PRINT_INLINE
-        LEA     P_LONG,A1
-        JSR     PRINT_INLINE
+        JSR     PRINT_LONG
         ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
         ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
@@ -700,8 +703,7 @@ PRINT_MOVEAL
 PRINT_MOVEW
         LEA     P_MOVE,A1
         JSR     PRINT_INLINE
-        LEA     P_WORD,A1
-        JSR     PRINT_INLINE
+        JSR     PRINT_WORD
         ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
         ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
@@ -709,8 +711,7 @@ PRINT_MOVEW
 PRINT_MOVEAW
         LEA     P_MOVEA,A1
         JSR     PRINT_INLINE
-        LEA     P_WORD,A1
-        JSR     PRINT_INLINE
+        JSR     PRINT_WORD
         ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
         ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
@@ -749,7 +750,9 @@ PRINT_NOP
 
 *-----Group 5-----*
 PRINT_ADDQ
-        MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
+        LEA     P_ADDQ,A1
+        JSR     PRINT_INLINE
+        ;MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -1269,6 +1272,8 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
+
 
 
 
