@@ -668,19 +668,16 @@ PRINT_SIZE
 PRINT_BYTE
         LEA     P_BYTE,A1
         JSR     PRINT_INLINE
-        ;MOVE.W  #P_BYTE,SIZE_TO_PRINT
         RTS
 
 PRINT_WORD
         LEA     P_WORD,A1
         JSR     PRINT_INLINE
-        ;MOVE.W  #P_WORD,SIZE_TO_PRINT
         RTS
 
 PRINT_LONG
         LEA     P_LONG,A1
         JSR     PRINT_INLINE
-        ;MOVE.W  #P_LONG,SIZE_TO_PRINT
         RTS
 *-----Group 0 - nothing to print-----*
 
@@ -689,8 +686,6 @@ PRINT_MOVEB
         LEA     P_MOVE,A1
         JSR     PRINT_INLINE
         JSR     PRINT_BYTE
-        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        ;MOVE.L  #P_Byte,SIZE_TO_PRINT
         RTS
 
 *-----Group 2-----*
@@ -698,16 +693,12 @@ PRINT_MOVEL
         LEA     P_MOVE,A1
         JSR     PRINT_INLINE
         JSR     PRINT_LONG
-        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
         
 PRINT_MOVEAL
         LEA     P_MOVEA,A1
         JSR     PRINT_INLINE
         JSR     PRINT_LONG
-        ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        ;MOVE.L  #P_Long,SIZE_TO_PRINT
         RTS
 
 *-----Group 3-----*
@@ -715,16 +706,12 @@ PRINT_MOVEW
         LEA     P_MOVE,A1
         JSR     PRINT_INLINE
         JSR     PRINT_WORD
-        ;MOVE.L  #P_MOVE,OPCODE_TO_PRINT
-        ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
         
 PRINT_MOVEAW
         LEA     P_MOVEA,A1
         JSR     PRINT_INLINE
         JSR     PRINT_WORD
-        ;MOVE.L  #P_MOVEA,OPCODE_TO_PRINT
-        ;MOVE.L  #P_Word,SIZE_TO_PRINT
         RTS
 
 *-----Group 4-----*
@@ -763,7 +750,6 @@ PRINT_NOP
 PRINT_ADDQ
         LEA     P_ADDQ,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ADDQ,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -771,25 +757,21 @@ PRINT_ADDQ
 PRINT_BGT
         LEA     P_BGT,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_BGT,OPCODE_TO_PRINT
         RTS
 
 PRINT_BLT
         LEA     P_BLT,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_BLT,OPCODE_TO_PRINT
         RTS
 
 PRINT_BEQ
         LEA     P_BEQ,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_BEQ,OPCODE_TO_PRINT
         RTS
 
 PRINT_BRA
         LEA     P_BRA,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_BRA,OPCODE_TO_PRINT
         RTS
 
 *-----Group 7-----*
@@ -798,15 +780,12 @@ PRINT_MOVEQ ;only does longs
         JSR     PRINT_INLINE
         LEA     P_LONG,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_MOVEQ,OPCODE_TO_PRINT
-        ;MOVE.L  #P_LONG,SIZE_TO_PRINT
         RTS
 
 *-----Group 8-----*
 PRINT_OR
         LEA     P_OR,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_OR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
         
@@ -814,7 +793,6 @@ PRINT_OR
 PRINT_SUB
         LEA     P_SUB,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_SUB,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -826,7 +804,6 @@ PRINT_SUB
 PRINT_AND
         LEA     P_AND,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_AND,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
@@ -834,14 +811,12 @@ PRINT_AND
 PRINT_ADD
         LEA     P_ADD,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ADD,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ADDA
         LEA     P_ADDA,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ADDA,OPCODE_TO_PRINT
         ;JSR     PRINT_ADDA_SIZE ;ADDA has special size location, make special method to handle it
         RTS
 
@@ -849,42 +824,36 @@ PRINT_ADDA
 PRINT_LSR
         LEA     P_LSR,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_LSR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_LSL
         LEA     P_LSL,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_LSL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASR
         LEA     P_ASR,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ASR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASL
         LEA     P_ASL,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ASL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ROL
         LEA     P_ROL,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ROL,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ROR
         LEA     P_ROR,A1
         JSR     PRINT_INLINE
-        ;MOVE.L  #P_ROR,OPCODE_TO_PRINT
         JSR     PRINT_SIZE
         RTS
 
