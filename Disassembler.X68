@@ -205,7 +205,7 @@ CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the addressi
         JSR     PRINT_MOVEAL    ;MOVEAL
         JSR     PRINT_SOURCE
         JSR     PRINT_COMMA
-        JSR     SAVE_DEST
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_MOVEL
@@ -238,6 +238,9 @@ CHECK_FOR_MOVEAW ;MOVEAW has a slight difference from MOVEW in that the address 
         BNE     CHECK_FOR_MOVEW
         ;else
         JSR     PRINT_MOVEAW
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_MOVEW
@@ -1501,6 +1504,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
