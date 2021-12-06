@@ -11,8 +11,7 @@ DEST_MODE       EQU     $500
 SOURCE_VAR      EQU     $550
 SOURCE_MODE     EQU     $600
 TEMP            EQU     $650
-WORD_MEM        EQU     $700
-        
+REG_NUM         EQU     $700
     
 START ORG    $1000
 
@@ -182,7 +181,271 @@ CHECK_FOR_MOVEB
         BNE     INVALID_OPCODE
         ;else
         JSR     PRINT_MOVEB
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END 
+*-----------------------------------------------------------
+*SAVE_DEST
+*Saves bits 11-6 in opcode.
+*-----------------------------------------------------------
+SAVE_DEST
+        JSR     SAVE_DEST_MODE
+        JSR     SAVE_DEST_VAR
+        RTS
+*-----------------------------------------------------------
+*SAVE_DEST_MODE
+*Bits 8-6 in opcode will be stored in DEST_MODE.
+*-----------------------------------------------------------
+SAVE_DEST_MODE
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000000111000000,D0
+        LSR.L   #6,D0
+        MOVE.W  D0,DEST_MODE
+        RTS
+*-----------------------------------------------------------
+*SAVE_DEST_VAR
+*Bits 11-9 in opcode will be stored in SOURCE_VAR.
+*-----------------------------------------------------------
+SAVE_DEST_VAR
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000111000000000,D0
+        LSR.L   #6,D0
+        LSR.L   #3,D0
+        MOVE.W  D0,DEST_VAR
+        RTS
+*-----------------------------------------------------------
+*PRINT_DEST
+*-----------------------------------------------------------
+PRINT_DEST
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
+        MOVE.W  DEST_MODE,D0
+        CMPI.W  #0,D0               
+        BEQ     PRINT_REG_MODE_0    ;Dn
+        CMPI.W  #1,D0
+        BEQ     PRINT_REG_MODE_1    ;An
+        CMPI.W  #2,D0
+        BEQ     PRINT_REG_MODE_2    ;(An)
+        CMPI.W  #3,D0
+        BEQ     PRINT_REG_MODE_3    ;(An)+
+        CMPI.W  #4,D0
+        BEQ     PRINT_REG_MODE_4    ;-(An)
+        CMPI.W  #7,D0
+        BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
+        RTS
+*-----------------------------------------------------------
+*PRINT_COMMA
+*-----------------------------------------------------------
+PRINT_COMMA
+        LEA     P_COMMA,A1
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
+*-----------------------------------------------------------
+*PRINT_SOURCE
+*-----------------------------------------------------------
+PRINT_SOURCE
+        JSR     SAVE_SOURCE
+        MOVE.W  SOURCE_VAR,REG_NUM
+        MOVE.W  SOURCE_MODE,D0
+        CMPI.W  #0,D0               
+        BEQ     PRINT_REG_MODE_0    ;Dn
+        CMPI.W  #1,D0
+        BEQ     PRINT_REG_MODE_1    ;An
+        CMPI.W  #2,D0
+        BEQ     PRINT_REG_MODE_2    ;(An)
+        CMPI.W  #3,D0
+        BEQ     PRINT_REG_MODE_3    ;(An)+
+        CMPI.W  #4,D0
+        BEQ     PRINT_REG_MODE_4    ;-(An)
+        CMPI.W  #7,D0
+        BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
+        RTS
+*-----------------------------------------------------------
+*SAVE_SOURCE
+*Saves bits 5-0 in opcode.
+*-----------------------------------------------------------
+SAVE_SOURCE
+        JSR     SAVE_SOURCE_MODE
+        JSR     SAVE_SOURCE_REG
+        RTS
+
+*-----------------------------------------------------------
+*SAVE_SOURCE_MODE
+*Bits 5-3 in opcode will be stored in SOURCE_MODE.
+*-----------------------------------------------------------
+SAVE_SOURCE_MODE
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000000000111000,D0
+        LSR.L   #3,D0
+        MOVE.W  D0,SOURCE_MODE
+        RTS
+        
+*-----------------------------------------------------------
+*SAVE_SOURCE_REG
+*Bits 2-0 in opcode will be stored in SOURCE_VAR.
+*-----------------------------------------------------------
+SAVE_SOURCE_REG
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000000000000111,D0
+        MOVE.W  D0,SOURCE_VAR
+        RTS
+        
+*-----------------------------------------------------------
+*PRINT_REG_MODE_X
+*Prints the source/destination register/EA
+*-----------------------------------------------------------    
+PRINT_REG_MODE_0
+        LEA     P_DATA_REG,A1   ;Dn
+        MOVE.B  #14,D0
+        TRAP    #15
+        JSR     PRINT_REG_NUM
+        RTS
+PRINT_REG_MODE_1
+        LEA     P_ADDR_REG,A1   ;An
+        MOVE.B  #14,D0
+        TRAP    #15
+        JSR     PRINT_REG_NUM
+        RTS
+PRINT_REG_MODE_2
+        LEA     P_OPEN_PAREN,A1     ;(
+        MOVE.B  #14,D0
+        TRAP    #15
+        
+        JSR     PRINT_REG_MODE_1    ;An
+        
+        LEA     P_CLOSE_PAREN,A1    ;)
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
+PRINT_REG_MODE_3
+        JSR     PRINT_REG_MODE_2    ;(An)
+        
+        LEA     P_POS_SIGN,A1       ;+
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
+PRINT_REG_MODE_4
+        LEA     P_NEG_SIGN,A1       ;-
+        MOVE.B  #14,D0
+        TRAP    #15
+        
+        JSR     PRINT_REG_MODE_2    ;(An)
+        RTS
+PRINT_REG_MODE_7
+        ;Word/Long Address, #<data>
+        MOVE.W  REG_NUM,D0
+        CMPI.W  #0,D0
+        BEQ     PRINT_WORD_ADDR
+        CMPI.W  #1,D0
+        BEQ     PRINT_LONG_ADDR
+        CMPI.W  #4,D0
+        ;BEQ     PRINT_IMMEDIATE_DATA (TODO)
+        ;else
+        RTS
+        
+*-----------------------------------------------------------
+*PRINT_WORD_ADDR
+*NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
+*----------------------------------------------------------- 
+PRINT_WORD_ADDR
+        LEA     P_HEX_SIGN,A1   ;$
+        JSR     PRINT_INLINE
+        
+        MOVE.L  (A2),D1
+        LSR.L   #8,D1       ;shift address to the right by a word; e.g. 5000FFFF -> 00005000
+        LSR.L   #8,D1
+        MOVE.B  #16,D2      ;base 16
+        MOVE.B  #15,D0
+        TRAP    #15
+        ; increment address pointer by 2 to read the word address; e.g. 1038 5000, (A2) was 5000, now it's the next machine code (if valid)
+        ADDA.W  #2,A2
+        RTS
+*-----------------------------------------------------------
+*PRINT_LONG_ADDR
+*NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
+*----------------------------------------------------------- 
+PRINT_LONG_ADDR
+        LEA     P_HEX_SIGN,A1   ;$
+        JSR     PRINT_INLINE
+        
+        MOVE.L  (A2),D2
+        JSR     PRINT_D2_LONG
+        CLR.L   D2
+        ; increment address pointer by 2 to read the word address; e.g. 1039 00005000, (A2) was 00005000, now it's the next machine code (if valid)
+        ADDA.W  #4,A2
+        RTS
+*-----------------------------------------------------------
+*PRINT_IMMEDIATE_DATA
+*NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
+*----------------------------------------------------------- 
+PRINT_IMMEDIATE_DATA
+        LEA     P_IM_DATA_SIGN,A1   ;#
+        JSR     PRINT_INLINE
+        ; TODO
+        
+*-----------------------------------------------------------
+*PRINT_REG_NUM
+*Prints address/data register number. e.g. prints 0 in D0
+*----------------------------------------------------------- 
+PRINT_REG_NUM
+        MOVE.W  REG_NUM,D0
+        CMPI.W  #0,D0
+        BEQ     PRINT_ZERO
+        CMPI.W  #1,D0
+        BEQ     PRINT_ONE
+        CMPI.W  #2,D0
+        BEQ     PRINT_TWO
+        CMPI.W  #3,D0
+        BEQ     PRINT_THREE
+        CMPI.W  #4,D0
+        BEQ     PRINT_FOUR
+        CMPI.W  #5,D0
+        BEQ     PRINT_FIVE
+        CMPI.W  #6,D0
+        BEQ     PRINT_SIX
+        CMPI.W  #7,D0
+        BEQ     PRINT_SEVEN
+        ;else RTS, print error (TODO)
+        RTS
+        
+*-----------------------------------------------------------
+*Print number table
+*NOTE: BEQ from PRINT_REG_NUM, RTS back to JSR PRINT_REG_MODE_X from PRINT_REG_NUM
+*----------------------------------------------------------- 
+PRINT_ZERO
+        LEA     CHAR_0,A1
+        JSR     PRINT_INLINE
+        RTS                     
+PRINT_ONE
+        LEA     CHAR_1,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_TWO
+        LEA     CHAR_2,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_THREE
+        LEA     CHAR_3,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_FOUR
+        LEA     CHAR_4,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_FIVE
+        LEA     CHAR_5,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_SIX
+        LEA     CHAR_6,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_SEVEN
+        LEA     CHAR_7,A1
+        JSR     PRINT_INLINE
+        RTS
 *-----------------------------------------------------------
 *Group 2
 *Checks for these valid opcodes: MOVE.L, MOVEA.L
@@ -201,6 +464,9 @@ CHECK_FOR_MOVEAL ;MOVEAL has a slight difference from MOVEL in that the addressi
         BNE     CHECK_FOR_MOVEL
         ;else
         JSR     PRINT_MOVEAL    ;MOVEAL
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     SAVE_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_MOVEL
@@ -210,6 +476,9 @@ CHECK_FOR_MOVEL
         BNE     INVALID_OPCODE
         ;else
         JSR     PRINT_MOVEL ;MOVEL
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
 *-----------------------------------------------------------
@@ -239,6 +508,9 @@ CHECK_FOR_MOVEW
         BNE     INVALID_OPCODE
         ;else
         JSR     PRINT_MOVEW
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
 *-----------------------------------------------------------
@@ -899,74 +1171,20 @@ OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 
 P_SOURCE_EA_MODE
-        LEA     REG_MODE_TABLE,A5
-        MOVE.W  SOURCE_MODE,D6
-        MOVE.W  SOURCE_VAR,TEMP
-        MULU    #6,D6
-        JSR     0(A5,D3)
-        RTS
+        ;LEA     REG_MODE_TABLE,A5
+        ;MOVE.W  SOURCE_MODE,D6
+        ;MOVE.W  SOURCE_VAR,TEMP
+        ;MULU    #6,D6
+        ;JSR     0(A5,D3)
+        ;RTS
 
 P_DEST_EA_MODE
-        LEA     REG_MODE_TABLE,A5
-        MOVE.W  DEST_MODE,D6
-        MOVE.W  DEST_VAR,TEMP
-        MULU    #6,D6
-        JSR     0(A5,D3)
-        RTS
-
-*-----------------------------------------------------------
-*///////////////////////////////////////////////////////////
-*REGISTER MODE TABLE
-*///////////////////////////////////////////////////////////
-*-----------------------------------------------------------
-
-REG_MODE_TABLE
-        JMP     REG_MODE_0  *Dn
-        JMP     REG_MODE_1  *An
-        JMP     REG_MODE_2  *(An)
-        JMP     REG_MODE_3  *immediate data
-        JMP     REG_MODE_4  *(An)+
-        JMP     REG_MODE_5  *-(An)
-        JMP     REG_MODE_6  *(xxx).L
-        JMP     REG_MODE_7  *(xxx).W
-
-
-REG_MODE_0                  *Dn
-        JSR     P_DATA_REG
-        *JSR     P_REG_NUM
-        RTS
-        
-REG_MODE_1                  *An
-        JSR     P_ADDR_REG
-        *JSR     P_REG_NUM
-        RTS
-        
-REG_MODE_2                  *(An)
-        JSR     P_OPEN_PAREN
-        JSR     REG_MODE_1
-        JSR     P_CLOSE_PAREN
-        RTS
-
-REG_MODE_3                  *immediate data #<xxx>
-        *wasn't sure how to do
-
-REG_MODE_4                  *(An)+
-        JSR     REG_MODE_2
-        JSR     P_POS_SIGN
-        RTS
-   
-REG_MODE_5                  *-(An)
-        JSR     P_NEG_SIGN
-        JSR     REG_MODE_2
-        RTS
-
-REG_MODE_6                  *absolute long address (xxx).L
-        *wasn't sure how to do
-
-REG_MODE_7                  *absolute word address (xxx).W
-        *wasn't sure how to do
-
-
+        ;LEA     REG_MODE_TABLE,A5
+        ;MOVE.W  DEST_MODE,D6
+        ;MOVE.W  DEST_VAR,TEMP
+        ;MULU    #6,D6
+        ;JSR     0(A5,D3)
+        ;RTS
 *-----------------------------------------------------------
 * CONVERT_TO_HEX
 * CONVERT_TO_HEX_ALPHA
@@ -1192,6 +1410,7 @@ PRINT_MEM_ADDR
         JSR     ENDLINE
         MOVE.L  A2,D2
         JSR     PRINT_D2_LONG
+        CLR.L   D2
         RTS
         
 PD_COUNTER_20        
@@ -1203,6 +1422,7 @@ PD_COUNTER_20
         BLE     END
         SUBI.B  #1,D3
         RTS
+        
         
 *-----------------------------------------------------------
 * PRINT_INLINE
@@ -1306,6 +1526,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
