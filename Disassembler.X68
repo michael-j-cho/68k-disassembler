@@ -613,6 +613,7 @@ CHECK_GROUP_F
 INVALID_OPCODE
         MOVE.B  #0,OPCODE_VALIDITY
         MOVE.L  #P_INVALID,OPCODE_TO_PRINT
+        JSR     PRINT_INVALID
         BRA     OPCODE_SUBROUTINE_END
         
 *-----------------------------------------------------------
@@ -683,6 +684,11 @@ PRINT_LONG
         JSR     PRINT_INLINE
         RTS
 *-----Group 0 - nothing to print-----*
+
+PRINT_INVALID
+        LEA     P_INVALID,A1
+        JSR     PRINT_INLINE
+        RTS
 
 *-----Group 1-----*
 PRINT_MOVEB
