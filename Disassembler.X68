@@ -664,7 +664,7 @@ PRINT_SIZE
         MOVE.W  CURRENT_OPSIZE,D0
         CMP.B   #$00,D0
         BEQ     PRINT_BYTE
-        CMP.B   #$01,D0
+        CMP.B   #$11,D0
         BEQ     PRINT_WORD
         BRA     PRINT_LONG
 
