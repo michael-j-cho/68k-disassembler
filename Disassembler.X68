@@ -1305,6 +1305,20 @@ END
         LEA     END_MSG,A1
         MOVE.B  #13,D0
         TRAP    #15
+        
+        JSR      ENDLINE
+        LEA      RESTART_MSG,A1     ;load restart prompt msg
+        JSR      PRINT_INLINE
+        CLR      D1                 ;clear contents of D1
+        MOVE.B   #5,D0              ;input single char into D1
+        TRAP     #15
+        CMP      #$30,D1            ;ascii 0
+        BEQ      END_PROGRAM        ;branch to simhalt if equal to 0
+        JSR      ENDLINE
+        JSR      ENDLINE
+        JSR      INPUT_START_ADDR   ;otherwise, restart program
+        
+END_PROGRAM        
         SIMHALT
 
 GET_NEXT_SET
@@ -1493,6 +1507,7 @@ INPUT_END_MSG       DC.W    'Please enter an 8 hex digit ending address: ',0
 MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
 ENTER_CONT          DC.W    'Press enter to continue...',0
 END_MSG             DC.W    'Reached the end of test program!',0
+RESTART_MSG         DC.W    'Press 1 to restart the program. Press 0 to quit program. ',0
 ENDL                DC.W    '',0
 
 *Variables
@@ -1504,6 +1519,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
