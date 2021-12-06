@@ -961,11 +961,6 @@ PRINT_SOURCE
         BEQ     PRINT_REG_MODE_4    ;-(An)
         CMPI.W  #7,D0
         BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
-        LEA     REG_MODE_TABLE,A5 *load register mode table into A5
-        MOVE.W  SOURCE_MODE,D6
-        MOVE.W  SOURCE_VAR,TEMP
-        MULU    #6,D6
-        JSR     0(A5,D3)
         RTS
 *-----------------------------------------------------------
 *SAVE_SOURCE
@@ -995,7 +990,7 @@ SAVE_SOURCE_REG
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #%0000000000000111,D0
         MOVE.W  D0,SOURCE_VAR
-        
+        RTS
 *-----------------------------------------------------------
 *PRINT_REG_MODE_X
 *Prints the source/destination register/EA
@@ -1088,6 +1083,7 @@ PRINT_IMMEDIATE_DATA
         LEA     P_IM_DATA_SIGN,A1   ;#
         JSR     PRINT_INLINE
         ; TODO
+        RTS
         
 *-----------------------------------------------------------
 *PRINT_REG_NUM
@@ -1119,35 +1115,35 @@ PRINT_REG_NUM
 *NOTE: BEQ from PRINT_REG_NUM, RTS back to JSR PRINT_REG_MODE_X from PRINT_REG_NUM
 *----------------------------------------------------------- 
 PRINT_ZERO
-        LEA     CHAR_0,A1
+        LEA     P_CHAR_0,A1
         JSR     PRINT_INLINE
         RTS                     
 PRINT_ONE
-        LEA     CHAR_1,A1
+        LEA     P_CHAR_1,A1
         JSR     PRINT_INLINE
         RTS
 PRINT_TWO
-        LEA     CHAR_2,A1
+        LEA     P_CHAR_2,A1
         JSR     PRINT_INLINE
         RTS
 PRINT_THREE
-        LEA     CHAR_3,A1
+        LEA     P_CHAR_3,A1
         JSR     PRINT_INLINE
         RTS
 PRINT_FOUR
-        LEA     CHAR_4,A1
+        LEA     P_CHAR_4,A1
         JSR     PRINT_INLINE
         RTS
 PRINT_FIVE
-        LEA     CHAR_5,A1
+        LEA     P_CHAR_5,A1
         JSR     PRINT_INLINE
         RTS
 PRINT_SIX
-        LEA     CHAR_6,A1
+        LEA     P_CHAR_6,A1
         JSR     PRINT_INLINE
         RTS
 PRINT_SEVEN
-        LEA     CHAR_7,A1
+        LEA     P_CHAR_7,A1
         JSR     PRINT_INLINE
         RTS
 *-----------------------------------------------------------
@@ -1247,33 +1243,33 @@ CHECK_HEX_ALPHA
         RTS
         
 ALPHA_A
-        LEA     CHAR_A,A1                    ;prints A char
+        LEA     P_CHAR_A,A1                    ;prints A char
         MOVE.B  #14,D0
         RTS
         
         
 ALPHA_B
-        LEA     CHAR_B,A1                    ;prints B char
+        LEA     P_CHAR_B,A1                    ;prints B char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_C
-        LEA     CHAR_C,A1                    ;prints C char
+        LEA     P_CHAR_C,A1                    ;prints C char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_D
-        LEA     CHAR_D,A1                    ;prints D char
+        LEA     P_CHAR_D,A1                    ;prints D char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_E
-        LEA     CHAR_E,A1                    ;prints E char
+        LEA     P_CHAR_E,A1                    ;prints E char
         MOVE.B  #14,D0
         RTS
         
 ALPHA_F
-        LEA     CHAR_F,A1                    ;prints F char
+        LEA     P_CHAR_F,A1                    ;prints F char
         MOVE.B  #14,D0
         RTS      
         
@@ -1505,6 +1501,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
