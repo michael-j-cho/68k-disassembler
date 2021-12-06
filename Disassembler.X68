@@ -614,6 +614,7 @@ INVALID_OPCODE
         MOVE.B  #0,OPCODE_VALIDITY
         MOVE.L  #P_INVALID,OPCODE_TO_PRINT
         JSR     PRINT_INVALID
+        JSR     LOAD_INVALID_WORD
         BRA     OPCODE_SUBROUTINE_END
         
 *-----------------------------------------------------------
@@ -868,6 +869,15 @@ PRINT_ROR
 
 *-----Group F - nothing to print-----*
 
+*-----------------------------------------------------------
+* LOAD_INVALID_WORD
+* PRECONDITION: 
+*-----------------------------------------------------------
+LOAD_INVALID_WORD
+        CLR     D1
+        MOVE.W  (A6),D1
+        JSR     PRINT_BASE_16
+        RTS
 
 *-----------------------------------------------------------
 *///////////////////////////////////////////////////////////
@@ -1525,6 +1535,7 @@ SIZE_TO_PRINT       DS.W    1
 
 
     END    $1000        ; last line of source
+
 
 
 
