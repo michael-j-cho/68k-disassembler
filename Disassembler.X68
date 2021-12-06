@@ -961,6 +961,11 @@ PRINT_SOURCE
         BEQ     PRINT_REG_MODE_4    ;-(An)
         CMPI.W  #7,D0
         BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
+        LEA     REG_MODE_TABLE,A5 *load register mode table into A5
+        MOVE.W  SOURCE_MODE,D6
+        MOVE.W  SOURCE_VAR,TEMP
+        MULU    #6,D6
+        JSR     0(A5,D3)
         RTS
 *-----------------------------------------------------------
 *SAVE_SOURCE
@@ -990,7 +995,6 @@ SAVE_SOURCE_REG
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #%0000000000000111,D0
         MOVE.W  D0,SOURCE_VAR
-        RTS
         
 *-----------------------------------------------------------
 *PRINT_REG_MODE_X
@@ -1419,22 +1423,22 @@ ENDLINE
         RTS
       
 *Table for hex characters
-CHAR_0	DC.B	'0',0
-CHAR_1	DC.B	'1',0
-CHAR_2	DC.B	'2',0
-CHAR_3	DC.B	'3',0
-CHAR_4	DC.B	'4',0
-CHAR_5	DC.B	'5',0
-CHAR_6	DC.B	'6',0
-CHAR_7	DC.B	'7',0
-CHAR_8	DC.B	'8',0
-CHAR_9	DC.B	'9',0
-CHAR_A	DC.B	'A',0
-CHAR_B	DC.B	'B',0
-CHAR_C	DC.B	'C',0
-CHAR_D	DC.B	'D',0
-CHAR_E	DC.B	'E',0
-CHAR_F	DC.B	'F',0
+P_CHAR_0	DC.B	'0',0
+P_CHAR_1	DC.B	'1',0
+P_CHAR_2	DC.B	'2',0
+P_CHAR_3	DC.B	'3',0
+P_CHAR_4	DC.B	'4',0
+P_CHAR_5	DC.B	'5',0
+P_CHAR_6	DC.B	'6',0
+P_CHAR_7	DC.B	'7',0
+P_CHAR_8	DC.B	'8',0
+P_CHAR_9	DC.B	'9',0
+P_CHAR_A	DC.B	'A',0
+P_CHAR_B	DC.B	'B',0
+P_CHAR_C	DC.B	'C',0
+P_CHAR_D	DC.B	'D',0
+P_CHAR_E	DC.B	'E',0
+P_CHAR_F	DC.B	'F',0
 
 *table for opcode constants
 P_INVALID       DC.B    '   DATA   $',0
