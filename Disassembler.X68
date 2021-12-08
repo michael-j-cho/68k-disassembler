@@ -339,6 +339,7 @@ CHECK_FOR_ADDQ
         CMP.W   #$5000,D0
         BNE     INVALID_OPCODE
         ;else
+        MOVE.B  #1,IM_DATA_SIZE
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ADDQ
         BRA     OPCODE_SUBROUTINE_END
@@ -953,14 +954,6 @@ PRINT_DEST
         BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
         RTS
 
-        
-P_SOURCE_EA_MODE
-        ;LEA     REG_MODE_TABLE,A5
-        ;MOVE.W  SOURCE_MODE,D6
-        ;MOVE.W  SOURCE_VAR,TEMP
-        ;MULU    #6,D6
-        ;JSR     0(A5,D3)
-        ;RTS
 *-----------------------------------------------------------
 *PRINT_SOURCE
 *-----------------------------------------------------------
@@ -979,8 +972,13 @@ PRINT_SOURCE
         CMPI.W  #4,D0
         BEQ     PRINT_REG_MODE_4    ;-(An)
         CMPI.W  #7,D0
+        BEQ     PRINT_REG_MODE_5    ;bad instruction
+        CMPI.W  #6,D0
+        BEQ     PRINT_REG_MODE_6    ;bad instruction
+        CMPI.W  #6,D0
         BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
         RTS
+        
 *-----------------------------------------------------------
 *SAVE_SOURCE
 *Saves bits 5-0 in opcode.
@@ -1010,18 +1008,19 @@ SAVE_SOURCE_REG
         ANDI.W  #%0000000000000111,D0
         MOVE.W  D0,SOURCE_VAR
         RTS
+        
 *-----------------------------------------------------------
 *PRINT_REG_MODE_X
 *Prints the source/destination register/EA
 *-----------------------------------------------------------    
 PRINT_REG_MODE_0
-        LEA     P_DATA_REG,A1   ;Dn
+        LEA     P_DATA_REG,A1       ;Dn
         MOVE.B  #14,D0
         TRAP    #15
         JSR     PRINT_REG_NUM
         RTS
 PRINT_REG_MODE_1
-        LEA     P_ADDR_REG,A1   ;An
+        LEA     P_ADDR_REG,A1       ;An
         MOVE.B  #14,D0
         TRAP    #15
         JSR     PRINT_REG_NUM
@@ -1051,6 +1050,13 @@ PRINT_REG_MODE_4
         
         JSR     PRINT_REG_MODE_2    ;(An)
         RTS
+        
+PRINT_REG_MODE_5                    ;both mode 5 and 6 are invalid for EA
+        JMP     PRINT_INVALID
+
+PRINT_REG_MODE_6
+        JMP     PRINT_INVALID
+
 PRINT_REG_MODE_7
         ;Word/Long Address, #<data>
         MOVE.W  REG_NUM,D0
@@ -1059,7 +1065,7 @@ PRINT_REG_MODE_7
         CMPI.W  #1,D0
         BEQ     PRINT_LONG_ADDR
         CMPI.W  #4,D0
-        ;BEQ     PRINT_IMMEDIATE_DATA (TODO)
+        BEQ     PRINT_IMMEDIATE_DATA (TODO)
         ;else
         RTS
         
@@ -1080,6 +1086,7 @@ PRINT_WORD_ADDR
         ; increment address pointer by 2 to read the word address; e.g. 1038 5000, (A2) was 5000, now it's the next machine code (if valid)
         ADDA.W  #2,A2
         RTS
+        
 *-----------------------------------------------------------
 *PRINT_LONG_ADDR
 *NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
@@ -1094,6 +1101,7 @@ PRINT_LONG_ADDR
         ; increment address pointer by 2 to read the word address; e.g. 1039 00005000, (A2) was 00005000, now it's the next machine code (if valid)
         ADDA.W  #4,A2
         RTS
+        
 *-----------------------------------------------------------
 *PRINT_IMMEDIATE_DATA
 *NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
@@ -1101,9 +1109,42 @@ PRINT_LONG_ADDR
 PRINT_IMMEDIATE_DATA
         LEA     P_IM_DATA_SIGN,A1   ;#
         JSR     PRINT_INLINE
+        JSR     GET_IM_DATA_SIZE
+        CLR.L   D1                  ;Clear D1 so we can convert to hex
+        JMP     IM_DATA_SIZE_TABLE  ;Check the immediate data size
+        JSR     CONVERT_TO_HEX
         ; TODO
         RTS
         
+*-----------------------------------------------------------
+*GET_IM_DATA_SIZE
+*NOTE: put immediate data size to use in im_data_size_table
+*-----------------------------------------------------------
+GET_IM_DATA_SIZE
+        
+        
+        
+IM_DATA_SIZE_TABLE
+        CMP.B   #1,IM_DATA_SIZE
+        BEQ     IM_DATA_BYTE
+        CMP.B   #4,IM_DATA_SIZE
+        BEQ     IM_DATA_WORD
+        CMP.B   #8,IM_DATA_SIZE
+        BEQ     IM_DATA_LONG
+        RTS
+        
+IM_DATA_BYTE
+        MOVE.B  (A5)+,D1            ;get byte data
+        RTS
+        
+IM_DATA_WORD
+        MOVE.W  (A5)+,D1            ;get word data
+        RTS
+
+IM_DATA_LONG
+        MOVE.L  (A5)+,D1            ;get long data
+        RTS
+
 *-----------------------------------------------------------
 *PRINT_REG_NUM
 *Prints address/data register number. e.g. prints 0 in D0
@@ -1356,6 +1397,7 @@ USER_ENTER_CONT
         MOVE.B  #5,D0           ;allow user to press enter
         TRAP    #15
         RTS
+        
 *-----------------------------------------------------------
 * CHECK_MEM_RANGE
 * PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
@@ -1532,21 +1574,9 @@ CURRENT_OPSIZE      DS.W    1
 OPCODE_VALIDITY     DS.B    1
 OPCODE_TO_PRINT     DS.W    1
 SIZE_TO_PRINT       DS.W    1
-
+IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
