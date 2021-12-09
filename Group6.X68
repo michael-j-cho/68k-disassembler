@@ -2,41 +2,35 @@
 * Title      :
 * Written by :
 * Date       :
-* Description:
+* Description: BGT, BLT, BEQ, BRA
 *-----------------------------------------------------------
-    ORG    $00009000
+    ORG    $9000
 START:                  ; first instruction of program
 
 * Put program code here
-
-    MOVE.B  D0,D1
-    MOVE.B  D2,D3
-    MOVE.W  A0,D0
-    MOVE.B  (A0),D0
-    MOVE.B  (A0)+,D0
-    MOVE.B  -(A0),D0
-    MOVE.B  $F9999,D0
-    MOVE.B  $1000,D0
-    MOVE.B  $0001,D0
-    MOVE.L  #2,D0
-    ;MOVE.B  $00010000,d0
-    ;MOVE.B  #3,D0
+        ADDQ    #1,D0
+        CMP     #1,D0
+        BGT     NEXT_1
+NEXT_1
+        CMP     #1,D0
+        BLT     NEXT_2
+NEXT_2  
+        CMP     #1,D0
+        BEQ     NEXT_3
+NEXT_3  
+        CMP     #1,D0
+        BEQ     DONE
+DONE    
+        CMP     #1,D0
+        BRA     END
+        
     
+END
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
 
     END    START        ; last line of source
-
-
-
-
-
-
-
-
-
-
 
 
 *~Font name~Courier New~

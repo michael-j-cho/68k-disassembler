@@ -2,41 +2,26 @@
 * Title      :
 * Written by :
 * Date       :
-* Description:
+* Description: SUB
 *-----------------------------------------------------------
-    ORG    $00009000
+    ORG    $9000
 START:                  ; first instruction of program
 
 * Put program code here
-
-    MOVE.B  D0,D1
-    MOVE.B  D2,D3
-    MOVE.W  A0,D0
-    MOVE.B  (A0),D0
-    MOVE.B  (A0)+,D0
-    MOVE.B  -(A0),D0
-    MOVE.B  $F9999,D0
-    MOVE.B  $1000,D0
-    MOVE.B  $0001,D0
-    MOVE.L  #2,D0
-    ;MOVE.B  $00010000,d0
-    ;MOVE.B  #3,D0
-    
+        ;SUB <ea>,Dn
+        SUB.B   $1,D0
+        SUB.W   $2,D2
+        SUB.L   $3,D3
+        ;SUB Dn,<ea>
+        SUB.B   D0,$100
+        SUB.W   D1,$120
+        SUB.L   D2,$140
+ 
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
 
     END    START        ; last line of source
-
-
-
-
-
-
-
-
-
-
 
 
 *~Font name~Courier New~

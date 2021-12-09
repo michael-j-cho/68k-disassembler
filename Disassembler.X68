@@ -339,7 +339,7 @@ CHECK_FOR_ADDQ
         CMP.W   #$5000,D0
         BNE     INVALID_OPCODE
         ;else
-        MOVE.B  #1,IM_DATA_SIZE
+
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ADDQ
         BRA     OPCODE_SUBROUTINE_END
@@ -912,6 +912,7 @@ SAVE_DEST
         JSR     SAVE_DEST_MODE
         JSR     SAVE_DEST_VAR
         RTS
+
 *-----------------------------------------------------------
 *SAVE_DEST_MODE
 *Bits 8-6 in opcode will be stored in DEST_MODE.
@@ -1008,7 +1009,30 @@ SAVE_SOURCE_REG
         ANDI.W  #%0000000000000111,D0
         MOVE.W  D0,SOURCE_VAR
         RTS
+*-----------------------------------------------------------
+*PRINT_REG_MODE_X
+*Prints the source/destination register/EA
+*-----------------------------------------------------------    
+PRINT_REG_MODE_0
+        LEA     P_DATA_REG,A1   ;Dn
+        MOVE.B  #14,D0
+        TRAP    #15
+        JSR     PRINT_REG_NUM
+        RTS
+PRINT_REG_MODE_1
+        LEA     P_ADDR_REG,A1   ;An
+        MOVE.B  #14,D0
+        TRAP    #15
+        JSR     PRINT_REG_NUM
+        RTS
+PRINT_REG_MODE_2
+        LEA     P_OPEN_PAREN,A1     ;(
+        MOVE.B  #14,D0
+        TRAP    #15
         
+        JSR     PRINT_REG_MODE_1    ;An
+        
+
 *-----------------------------------------------------------
 *PRINT_REG_MODE_X
 *Prints the source/destination register/EA
@@ -1056,6 +1080,27 @@ PRINT_REG_MODE_5                    ;both mode 5 and 6 are invalid for EA
 
 PRINT_REG_MODE_6
         JMP     PRINT_INVALID
+
+        LEA     P_CLOSE_PAREN,A1    ;)
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
+        
+PRINT_REG_MODE_3
+        JSR     PRINT_REG_MODE_2    ;(An)
+        
+        LEA     P_POS_SIGN,A1       ;+
+        MOVE.B  #14,D0
+        TRAP    #15
+        RTS
+        
+PRINT_REG_MODE_4
+        LEA     P_NEG_SIGN,A1       ;-
+        MOVE.B  #14,D0
+        TRAP    #15
+        
+        JSR     PRINT_REG_MODE_2    ;(An)
+        RTS
 
 PRINT_REG_MODE_7
         ;Word/Long Address, #<data>
@@ -1397,7 +1442,7 @@ USER_ENTER_CONT
         MOVE.B  #5,D0           ;allow user to press enter
         TRAP    #15
         RTS
-        
+
 *-----------------------------------------------------------
 * CHECK_MEM_RANGE
 * PRECONDITION: STARTING_ADDR and ENDING_ADDR exists
@@ -1577,13 +1622,6 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
-
-
-
-
-
-
-
 
 
 *~Font name~Courier New~

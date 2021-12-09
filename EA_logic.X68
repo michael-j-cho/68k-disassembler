@@ -17,6 +17,7 @@ START:                  ; first instruction of program
 
 * Put program code here
     MOVE.W  #$1008, $9000   ; machine code XXXX stored in $0009000
+
     
 STORE_SOURCE
     MOVE.W  $9000,D5        
@@ -232,6 +233,7 @@ P_DATA      DC.B    'D',0
 P_ADDR      DC.B    'A',0
 
     END    START        ; last line of source
+
 
 
 *~Font name~Courier New~
