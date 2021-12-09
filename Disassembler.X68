@@ -289,8 +289,6 @@ CHECK_FOR_JSR
         BNE     CHECK_FOR_RTS ;check for next opcode
         ;else
         JSR     PRINT_JSR
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
         JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
@@ -337,8 +335,6 @@ CHECK_FOR_NOT
         BNE     CHECK_FOR_NOP
         ;else
         JSR     PRINT_NOT
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
         JSR     PRINT_DEST
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END
@@ -349,9 +345,6 @@ CHECK_FOR_NOP
         BNE     INVALID_OPCODE
         ;else
         JSR     PRINT_NOP
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
-        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 5
@@ -365,9 +358,11 @@ CHECK_FOR_ADDQ
         CMP.W   #$5000,D0
         BNE     INVALID_OPCODE
         ;else
-
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ADDQ
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 6
@@ -455,6 +450,9 @@ CHECK_FOR_SBCD
 CHECK_FOR_OR    ;must be OR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_OR
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group 9
@@ -478,8 +476,11 @@ CHECK_FOR_SUBA
         ;else it's SUB 
         
 CHECK_FOR_SUB    ;must be SUB
-        JSR     PRINT_SUB
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_SUB
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group A
@@ -532,6 +533,9 @@ CHECK_FOR_ABCD
 CHECK_FOR_AND ;it's AND at this point
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_AND
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group D
@@ -558,7 +562,11 @@ CHECK_FOR_ADDA
 
         ;there's only three opcodes in total, so has to be add at this point
 CHECK_FOR_ADD
+        JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ADD
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group E
@@ -693,7 +701,7 @@ PRINT_SIZE
         MOVE.W  CURRENT_OPSIZE,D0
         CMP.B   #$00,D0
         BEQ     PRINT_BYTE
-        CMP.B   #$11,D0
+        CMP.B   #$01,D0
         BEQ     PRINT_WORD
         BRA     PRINT_LONG
 
