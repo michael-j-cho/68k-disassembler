@@ -374,18 +374,18 @@ CHECK_FOR_BGT
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$FF00,D0
         CMP.W   #$6E00,D0
-        BNE     CHECK_FOR_BLT
+        BNE     CHECK_FOR_BLE
         ;else
         JSR     PRINT_BGT
         BRA     OPCODE_SUBROUTINE_END
 
-CHECK_FOR_BLT
+CHECK_FOR_BLE
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$FF00,D0
-        CMP.W   #$6D00,D0
+        CMP.W   #$6F00,D0
         BNE     CHECK_FOR_BEQ
         ;else
-        JSR     PRINT_BLT
+        JSR     PRINT_BLE
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_BEQ
@@ -450,10 +450,7 @@ CHECK_FOR_SBCD
 CHECK_FOR_OR    ;must be OR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_OR
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
-        JSR     PRINT_DEST
-        BRA     OPCODE_SUBROUTINE_END 
+        BRA     PRINT_SOURCE_DEST_ORDER
 *-----------------------------------------------------------
 *Group 9
 *Checks for these valid opcodes: SUB
@@ -478,10 +475,7 @@ CHECK_FOR_SUBA
 CHECK_FOR_SUB    ;must be SUB
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_SUB
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
-        JSR     PRINT_DEST
-        BRA     OPCODE_SUBROUTINE_END 
+        BRA     PRINT_SOURCE_DEST_ORDER
 *-----------------------------------------------------------
 *Group A
 *Checks for these valid opcodes: None 
@@ -533,9 +527,7 @@ CHECK_FOR_ABCD
 CHECK_FOR_AND ;it's AND at this point
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_AND
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
-        JSR     PRINT_DEST
+        BRA     PRINT_SOURCE_DEST_ORDER
         BRA     OPCODE_SUBROUTINE_END 
 *-----------------------------------------------------------
 *Group D
@@ -564,10 +556,7 @@ CHECK_FOR_ADDA
 CHECK_FOR_ADD
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ADD
-        JSR     PRINT_SOURCE
-        JSR     PRINT_COMMA
-        JSR     PRINT_DEST
-        BRA     OPCODE_SUBROUTINE_END 
+        BRA     PRINT_SOURCE_DEST_ORDER
 *-----------------------------------------------------------
 *Group E
 *Checks for these valid opcodes: LSR, LSL, ASR, ASL, ROL, ROR 
@@ -580,8 +569,8 @@ CHECK_FOR_LSR
         CMP.W   #$E008,D0
         BNE     CHECK_FOR_LSL
         ;else
-        JSR     PRINT_LSR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_LSR
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_LSL
@@ -590,8 +579,8 @@ CHECK_FOR_LSL
         CMP.W   #$E108,D0
         BNE     CHECK_FOR_ASR
         ;else
-        JSR     PRINT_LSL
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_LSL
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ASR
@@ -600,8 +589,8 @@ CHECK_FOR_ASR
         CMP.W   #$E000,D0
         BNE     CHECK_FOR_ASL
         ;else
-        JSR     PRINT_ASR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_ASR
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ASL
@@ -610,8 +599,8 @@ CHECK_FOR_ASL
         CMP.W   #$E100,D0
         BNE     CHECK_FOR_ROL
         ;else
-        JSR     PRINT_ASL
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_ASL
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ROL
@@ -620,18 +609,18 @@ CHECK_FOR_ROL
         CMP.W   #$E118,D0
         BNE     CHECK_FOR_ROR
         ;else
-        JSR     PRINT_ROL
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_ROL
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ROR
         MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$FF00,D0
+        ANDI.W  #$F118,D0
         CMP.W   #$E018,D0
         BNE     INVALID_OPCODE
         ;else
-        JSR     PRINT_ROR
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        JSR     PRINT_ROR
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group F
@@ -694,6 +683,26 @@ TWO_BIT_SIZE_AT_BITS_7_6
 *These will load the appropriate variables with the constant to be printed out by I/O
 *-----------------------------------------------------------
 
+*Some instructions either place the ea first or second, and Dn in the other spot
+*These three print the ea in a location that depends on the 8th bit
+PRINT_SOURCE_DEST_ORDER
+        JSR     ONE_BIT_SIZE_AT_BIT_8
+        MOVE.W  CURRENT_OPSIZE,D0
+        CMP.B   #$1,D0
+        BEQ     PRINT_DEST_TO_SOURCE
+        BRA     PRINT_SOURCE_TO_DEST
+
+PRINT_SOURCE_TO_DEST
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_REG_MODE_0
+        BRA     OPCODE_SUBROUTINE_END
+        
+PRINT_DEST_TO_SOURCE
+        JSR     PRINT_REG_MODE_0
+        JSR     PRINT_COMMA
+        JSR     PRINT_SOURCE
+        BRA     OPCODE_SUBROUTINE_END
 *-----------
 *Size prints
 *-----------
@@ -809,8 +818,8 @@ PRINT_BGT
         JSR     PRINT_INLINE
         RTS
 
-PRINT_BLT
-        LEA     P_BLT,A1
+PRINT_BLE
+        LEA     P_BLE,A1
         JSR     PRINT_INLINE
         RTS
 
@@ -1573,7 +1582,7 @@ P_NOT           DC.B    '   NOT     ',0
 P_NOP           DC.B    '   NOP',0      *no operands
 P_ADDQ          DC.B    '   ADDQ',0
 P_BGT           DC.B    '   BGT     ',0
-P_BLT           DC.B    '   BLT     ',0
+P_BLE           DC.B    '   BLT     ',0
 P_BEQ           DC.B    '   BEQ     ',0
 P_BRA           DC.B    '   BRA     ',0
 P_MOVEQ         DC.B    '   MOVEQ',0
@@ -1627,6 +1636,10 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
+
+
+
 
 
 
