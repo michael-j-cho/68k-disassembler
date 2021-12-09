@@ -25,9 +25,18 @@ START ORG    $1000
 *-----------------------------------------------------------
                                           
 INPUT_START_ADDR
+        LEA     HEX_ONLY_MSG,A1
+        JSR     PRINT_INLINE
+        JSR     ENDLINE
+        LEA     ADDR_RANGE_MSG,A1
+        JSR     PRINT_INLINE
+        JSR     ENDLINE
+        LEA     EVEN_ADDR_MSG,A1
+        JSR     PRINT_INLINE
+        JSR     ENDLINE
+        JSR     ENDLINE
         LEA     INPUT_START_MSG,A1          ;display message to input starting addr            
-        MOVE    #14,D0
-        TRAP    #15
+        JSR     PRINT_INLINE
         MOVE    #8,D7                       ;6 unit counter in d7
     
 INPUT_START_ADDR_LOOP
@@ -45,8 +54,7 @@ INPUT_END_ADDR
         JSR     ENDLINE                        
         CLR.L   D2                          
         LEA     INPUT_END_MSG,A1            ;display message to input ending addr
-        MOVE    #14,D0                  
-        TRAP    #15                         
+        JSR     PRINT_INLINE                        
         MOVE    #8,D7                       ;6 unit counter in d7
 
 INPUT_END_ADDR_LOOP
@@ -1008,30 +1016,7 @@ SAVE_SOURCE_REG
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #%0000000000000111,D0
         MOVE.W  D0,SOURCE_VAR
-        RTS
-*-----------------------------------------------------------
-*PRINT_REG_MODE_X
-*Prints the source/destination register/EA
-*-----------------------------------------------------------    
-PRINT_REG_MODE_0
-        LEA     P_DATA_REG,A1   ;Dn
-        MOVE.B  #14,D0
-        TRAP    #15
-        JSR     PRINT_REG_NUM
-        RTS
-PRINT_REG_MODE_1
-        LEA     P_ADDR_REG,A1   ;An
-        MOVE.B  #14,D0
-        TRAP    #15
-        JSR     PRINT_REG_NUM
-        RTS
-PRINT_REG_MODE_2
-        LEA     P_OPEN_PAREN,A1     ;(
-        MOVE.B  #14,D0
-        TRAP    #15
-        
-        JSR     PRINT_REG_MODE_1    ;An
-        
+        RTS        
 
 *-----------------------------------------------------------
 *PRINT_REG_MODE_X
@@ -1086,22 +1071,6 @@ PRINT_REG_MODE_6
         TRAP    #15
         RTS
         
-PRINT_REG_MODE_3
-        JSR     PRINT_REG_MODE_2    ;(An)
-        
-        LEA     P_POS_SIGN,A1       ;+
-        MOVE.B  #14,D0
-        TRAP    #15
-        RTS
-        
-PRINT_REG_MODE_4
-        LEA     P_NEG_SIGN,A1       ;-
-        MOVE.B  #14,D0
-        TRAP    #15
-        
-        JSR     PRINT_REG_MODE_2    ;(An)
-        RTS
-
 PRINT_REG_MODE_7
         ;Word/Long Address, #<data>
         MOVE.W  REG_NUM,D0
@@ -1503,6 +1472,8 @@ DISPLAY_RETURN
 *-----------------------------------------------------------
 PRINT_MEM_ADDR
         JSR     ENDLINE
+        LEA     P_HEX_SIGN,A1
+        JSR     PRINT_INLINE
         MOVE.L  A2,D2
         JSR     PRINT_D2_LONG
         CLR.L   D2
@@ -1605,12 +1576,15 @@ P_HEX_SIGN      DC.B    '$',0
 P_IM_DATA_SIGN  DC.B    '#',0
 
 *Console messages
-INPUT_START_MSG     DC.W    'Please enter an 8 hex digit starting address: ',0
-INPUT_END_MSG       DC.W    'Please enter an 8 hex digit ending address: ',0
+HEX_ONLY_MSG        DC.W    'Enter only valid hex numbers and capitol hex alphas [0-9][A-F]',0
+ADDR_RANGE_MSG      DC.W    'Starting address must be greater than or equal to $00001000',0
+EVEN_ADDR_MSG       DC.W    'Addresses must be even hex intervals [0,2,4,6,8,A,C,E]. Ex $0000100C',0
+INPUT_START_MSG     DC.W    'Please enter an 8 hex digit starting address: $',0
+INPUT_END_MSG       DC.W    'Please enter an 8 hex digit ending address: $',0
 MEM_OUT_OF_RANGE    DC.W    'Memory outside of range! Check inputs!',0
 ENTER_CONT          DC.W    'Press enter to continue...',0
 END_MSG             DC.W    'Reached the end of test program!',0
-RESTART_MSG         DC.W    'Press 1 to restart the program. Press 0 to quit program. ',0
+RESTART_MSG         DC.W    'Press 0 to quit program. Press enter to restart.',0
 ENDL                DC.W    '',0
 
 *Variables
@@ -1622,6 +1596,7 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
 
 
 *~Font name~Courier New~
