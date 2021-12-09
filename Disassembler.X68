@@ -277,6 +277,9 @@ CHECK_FOR_LEA
         BNE     CHECK_FOR_JSR ;check for next opcode
         ;else
         JSR     PRINT_LEA
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_JSR
@@ -286,6 +289,9 @@ CHECK_FOR_JSR
         BNE     CHECK_FOR_RTS ;check for next opcode
         ;else
         JSR     PRINT_JSR
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_RTS ;full static, no masking
@@ -307,6 +313,9 @@ CHECK_FOR_MOVEMW
         BNE     CHECK_FOR_NOT
         ;else
         JSR     PRINT_MOVEMW
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_MOVEML
@@ -316,6 +325,9 @@ CHECK_FOR_MOVEML
         BNE     CHECK_FOR_NOT
         ;else
         JSR     PRINT_MOVEML
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_NOT
@@ -325,6 +337,9 @@ CHECK_FOR_NOT
         BNE     CHECK_FOR_NOP
         ;else
         JSR     PRINT_NOT
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         BRA     OPCODE_SUBROUTINE_END
 
@@ -334,6 +349,9 @@ CHECK_FOR_NOP
         BNE     INVALID_OPCODE
         ;else
         JSR     PRINT_NOP
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_DEST
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group 5
@@ -735,34 +753,39 @@ PRINT_MOVEAW
 
 *-----Group 4-----*
 PRINT_LEA
-        MOVE.L  #P_LEA,OPCODE_TO_PRINT
+        LEA     P_LEA,A1
+        JSR     PRINT_INLINE
         RTS
         
 PRINT_JSR
-        MOVE.L  #P_JSR,OPCODE_TO_PRINT
+        LEA     P_JSR,A1
+        JSR     PRINT_INLINE
         RTS
 
 PRINT_RTS
-        MOVE.L  #P_RTS,OPCODE_TO_PRINT
+        LEA     P_RTS,A1
+        JSR     PRINT_INLINE
         RTS
 
 PRINT_MOVEMW
-        MOVE.L  #P_MOVEM,OPCODE_TO_PRINT
-        MOVE.L  #P_Word,SIZE_TO_PRINT
+        LEA     P_MOVEM,A1
+        JSR     PRINT_INLINE
         RTS
         
 PRINT_MOVEML
-        MOVE.L  #P_MOVEM,OPCODE_TO_PRINT
-        MOVE.L  #P_Long,SIZE_TO_PRINT
+        LEA     P_MOVEM,A1
+        JSR     PRINT_INLINE
         RTS
 
 PRINT_NOT
-        MOVE.L  #P_NOT,OPCODE_TO_PRINT
+        LEA     P_NOT,A1
+        JSR     PRINT_INLINE
         JSR     PRINT_SIZE
         RTS
 
 PRINT_NOP
-        MOVE.L  #P_NOP,OPCODE_TO_PRINT
+        LEA     P_NOP,A1
+        JSR     PRINT_INLINE
         RTS
 
 *-----Group 5-----*
