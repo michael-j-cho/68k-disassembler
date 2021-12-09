@@ -289,7 +289,7 @@ CHECK_FOR_JSR
         BNE     CHECK_FOR_RTS ;check for next opcode
         ;else
         JSR     PRINT_JSR
-        JSR     PRINT_DEST
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_RTS ;full static, no masking
@@ -686,7 +686,7 @@ TWO_BIT_SIZE_AT_BITS_7_6
 *Some instructions either place the ea first or second, and Dn in the other spot
 *These three print the ea in a location that depends on the 8th bit
 PRINT_SOURCE_DEST_ORDER
-        JSR     ONE_BIT_SIZE_AT_BIT_8
+        JSR     ONE_BIT_SIZE_AT_BIT_8 
         MOVE.W  CURRENT_OPSIZE,D0
         CMP.B   #$1,D0
         BEQ     PRINT_DEST_TO_SOURCE
@@ -695,10 +695,14 @@ PRINT_SOURCE_DEST_ORDER
 PRINT_SOURCE_TO_DEST
         JSR     PRINT_SOURCE
         JSR     PRINT_COMMA
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
         JSR     PRINT_REG_MODE_0
         BRA     OPCODE_SUBROUTINE_END
         
 PRINT_DEST_TO_SOURCE
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
         JSR     PRINT_REG_MODE_0
         JSR     PRINT_COMMA
         JSR     PRINT_SOURCE
@@ -1636,9 +1640,6 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
-
-
-
 
 
 
