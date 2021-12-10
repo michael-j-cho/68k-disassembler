@@ -279,7 +279,9 @@ CHECK_FOR_LEA
         JSR     PRINT_LEA
         JSR     PRINT_SOURCE
         JSR     PRINT_COMMA
-        JSR     PRINT_DEST
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
+        JSR     PRINT_REG_MODE_1
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_JSR
@@ -1040,11 +1042,11 @@ PRINT_SOURCE
         BEQ     PRINT_REG_MODE_3    ;(An)+
         CMPI.W  #4,D0
         BEQ     PRINT_REG_MODE_4    ;-(An)
-        CMPI.W  #7,D0
+        CMPI.W  #5,D0
         BEQ     PRINT_REG_MODE_5    ;bad instruction
         CMPI.W  #6,D0
         BEQ     PRINT_REG_MODE_6    ;bad instruction
-        CMPI.W  #6,D0
+        CMPI.W  #7,D0
         BEQ     PRINT_REG_MODE_7    ;Word/Long Address, #<data>
         RTS
         
@@ -1656,6 +1658,10 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
+
+
+
 
 
 
