@@ -289,7 +289,7 @@ CHECK_FOR_JSR
         BNE     CHECK_FOR_RTS ;check for next opcode
         ;else
         JSR     PRINT_JSR
-        JSR     PRINT_DEST
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
 
 CHECK_FOR_RTS ;full static, no masking
@@ -544,12 +544,18 @@ CHECK_FOR_ADDX
         ;else check for valid opcode(s)
         
 CHECK_FOR_ADDA
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F0F8,D0
-        CMP.W   #$D0C8,D0
+        JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        MOVE.W  CURRENT_OPSIZE,D0
+        CMP.W   #%11,D0 *can only be 11 for ADDA
         BNE     CHECK_FOR_ADD
         ;else
+        JSR     TWO_BIT_SIZE_AT_BIT_8_7
         JSR     PRINT_ADDA
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
+        JSR     PRINT_REG_MODE_1
         BRA     OPCODE_SUBROUTINE_END
 
         ;there's only three opcodes in total, so has to be add at this point
@@ -666,6 +672,16 @@ ONE_BIT_SIZE_AT_BIT_8
         LSR.W   D1,D0
         MOVE.W  D0,CURRENT_OPSIZE
         RTS
+        
+TWO_BIT_SIZE_AT_BIT_8_7
+        MOVE.W  CURRENT_OPCODE,D0
+        MOVE.W  #7,D1
+        LSL.W   D1,D0
+        LSR.W   D1,D0
+        MOVE.W  #7,D1
+        LSR.W   D1,D0
+        MOVE.W  D0,CURRENT_OPSIZE
+        RTS
 
 TWO_BIT_SIZE_AT_BITS_7_6
         ;most opcodes will fall under this method
@@ -686,7 +702,7 @@ TWO_BIT_SIZE_AT_BITS_7_6
 *Some instructions either place the ea first or second, and Dn in the other spot
 *These three print the ea in a location that depends on the 8th bit
 PRINT_SOURCE_DEST_ORDER
-        JSR     ONE_BIT_SIZE_AT_BIT_8
+        JSR     ONE_BIT_SIZE_AT_BIT_8 
         MOVE.W  CURRENT_OPSIZE,D0
         CMP.B   #$1,D0
         BEQ     PRINT_DEST_TO_SOURCE
@@ -695,10 +711,14 @@ PRINT_SOURCE_DEST_ORDER
 PRINT_SOURCE_TO_DEST
         JSR     PRINT_SOURCE
         JSR     PRINT_COMMA
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
         JSR     PRINT_REG_MODE_0
         BRA     OPCODE_SUBROUTINE_END
         
 PRINT_DEST_TO_SOURCE
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
         JSR     PRINT_REG_MODE_0
         JSR     PRINT_COMMA
         JSR     PRINT_SOURCE
@@ -876,7 +896,7 @@ PRINT_ADD
 PRINT_ADDA
         LEA     P_ADDA,A1
         JSR     PRINT_INLINE
-        ;JSR     PRINT_ADDA_SIZE ;ADDA has special size location, make special method to handle it
+        JSR     PRINT_SIZE
         RTS
 
 *-----Group E-----*
@@ -1636,6 +1656,10 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
+
+
+
 
 
 
