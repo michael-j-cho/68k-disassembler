@@ -544,12 +544,18 @@ CHECK_FOR_ADDX
         ;else check for valid opcode(s)
         
 CHECK_FOR_ADDA
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F0F8,D0
-        CMP.W   #$D0C8,D0
+        JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        MOVE.W  CURRENT_OPSIZE,D0
+        CMP.W   #%11,D0 *can only be 11 for ADDA
         BNE     CHECK_FOR_ADD
         ;else
+        JSR     TWO_BIT_SIZE_AT_BIT_8_7
         JSR     PRINT_ADDA
+        JSR     PRINT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
+        JSR     PRINT_REG_MODE_1
         BRA     OPCODE_SUBROUTINE_END
 
         ;there's only three opcodes in total, so has to be add at this point
@@ -663,6 +669,16 @@ ONE_BIT_SIZE_AT_BIT_8
         LSL.W   D1,D0
         LSR.W   D1,D0
         MOVE.W  #8,D1
+        LSR.W   D1,D0
+        MOVE.W  D0,CURRENT_OPSIZE
+        RTS
+        
+TWO_BIT_SIZE_AT_BIT_8_7
+        MOVE.W  CURRENT_OPCODE,D0
+        MOVE.W  #7,D1
+        LSL.W   D1,D0
+        LSR.W   D1,D0
+        MOVE.W  #7,D1
         LSR.W   D1,D0
         MOVE.W  D0,CURRENT_OPSIZE
         RTS
@@ -880,7 +896,7 @@ PRINT_ADD
 PRINT_ADDA
         LEA     P_ADDA,A1
         JSR     PRINT_INLINE
-        ;JSR     PRINT_ADDA_SIZE ;ADDA has special size location, make special method to handle it
+        JSR     PRINT_SIZE
         RTS
 
 *-----Group E-----*
