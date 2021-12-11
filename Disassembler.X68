@@ -747,6 +747,14 @@ ONE_BIT_SIZE_AT_BIT_8
         MOVE.W  D0,CURRENT_OPSIZE
         RTS
         
+TWO_BIT_SIZE_AT_BITS_13_12
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0011000000000000,D0
+        LSR.W   #8,D0
+        LSR.W   #4,D0
+        MOVE.W  D0,CURRENT_OPSIZE
+        RTS
+        
 TWO_BIT_SIZE_AT_BIT_8_7
         MOVE.W  CURRENT_OPCODE,D0
         MOVE.W  #7,D1
@@ -1129,6 +1137,8 @@ PRINT_SHIFT_SOURCE
 PRINT_SHIFT_SOURCE_IMMEDIATE
         LEA     P_IM_DATA_SIGN,A1       ;#
         JSR     PRINT_INLINE
+        LEA     P_HEX_SIGN,A1
+        JSR     PRINT_INLINE            ;$
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #%0000111000000000,D0   ;bit 11-9
         LSR.L   #8,D0
@@ -1149,6 +1159,7 @@ PRINT_SHIFT_SOURCE_IMMEDIATE
         BEQ     PRINT_SIX
         CMPI.W  #7,D0
         BEQ     PRINT_SEVEN
+        ;else, print error (can only shift 1-8 bits, no less and no more) (TODO)
         RTS
 *-----------------------------------------------------------
 *PRINT_SHIFT_SOURCE_DATA
@@ -1392,44 +1403,40 @@ PRINT_LONG_ADDR
 *NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
 *----------------------------------------------------------- 
 PRINT_IMMEDIATE_DATA
-        LEA     P_IM_DATA_SIGN,A1   ;#
+        LEA     P_IM_DATA_SIGN,A1       ;#
         JSR     PRINT_INLINE
-        JSR     GET_IM_DATA_SIZE
-        CLR.L   D1                  ;Clear D1 so we can convert to hex
-        JMP     IM_DATA_SIZE_TABLE  ;Check the immediate data size
-        JSR     CONVERT_TO_HEX
-        ; TODO
+        
+        MOVE.W  CURRENT_OPCODE,D0
+        LSR.W   #8,D0
+        LSR.W   #6,D0
+        CMPI.W  #0,D0   ;if opcode is variations of MOVE check bit 13,12
+        BEQ     PRINT_IMMEDIATE_DATA_MOVE
+        ;if opcode is ADDA check bit 8,7 (TODO)
+        
+        ;else
+        JSR     TWO_BIT_SIZE_AT_BITS_7_6
+        MOVE.W  CURRENT_OPSIZE,D0
+        CMPI.W  #2,D0               ;if bits 7,6 = 10
+        BEQ     PRINT_LONG_ADDR
+        ;else, bits 7,6 = 00 or 01
+        JSR     PRINT_WORD_ADDR     ;bytes and word immediate data works the same
         RTS
         
 *-----------------------------------------------------------
-*GET_IM_DATA_SIZE
-*NOTE: put immediate data size to use in im_data_size_table
-*-----------------------------------------------------------
-GET_IM_DATA_SIZE
-        
-        
-        
-IM_DATA_SIZE_TABLE
-        CMP.B   #1,IM_DATA_SIZE
-        BEQ     IM_DATA_BYTE
-        CMP.B   #4,IM_DATA_SIZE
-        BEQ     IM_DATA_WORD
-        CMP.B   #8,IM_DATA_SIZE
-        BEQ     IM_DATA_LONG
+*PRINT_IMMEDIATE_DATA_MOVE
+*NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
+*----------------------------------------------------------- 
+PRINT_IMMEDIATE_DATA_MOVE
+        JSR     TWO_BIT_SIZE_AT_BITS_13_12
+        MOVE.W  CURRENT_OPSIZE,D0
+        CMPI.W  #%10,D0
+        BEQ     PRINT_LONG_ADDR
+        CMPI.W  #%11,D0
+        BEQ     PRINT_WORD_ADDR
+        CMPI.W  #%01,D0
+        BEQ     PRINT_WORD_ADDR
+        ;else 
         RTS
-        
-IM_DATA_BYTE
-        MOVE.B  (A5)+,D1            ;get byte data
-        RTS
-        
-IM_DATA_WORD
-        MOVE.W  (A5)+,D1            ;get word data
-        RTS
-
-IM_DATA_LONG
-        MOVE.L  (A5)+,D1            ;get long data
-        RTS
-
 *-----------------------------------------------------------
 *PRINT_REG_NUM
 *Prints address/data register number. e.g. prints 0 in D0
@@ -1871,6 +1878,7 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
 
 
 
