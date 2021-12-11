@@ -1059,10 +1059,6 @@ PRINT_SHIFT_SOURCE
         CMPI.W  #1,D0                   ;i/r == 1
         BEQ     PRINT_SHIFT_SOURCE_DATA        ;source is data register
         ;else, source is immediate data
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #%0000111000000000,D0   ;bit 11-9
-        LSR.L   #8,D0
-        LSR.L   #1,D0                   ;store count in D0
         JSR     PRINT_SHIFT_SOURCE_IMMEDIATE
         RTS
 *-----------------------------------------------------------
@@ -1072,22 +1068,26 @@ PRINT_SHIFT_SOURCE
 PRINT_SHIFT_SOURCE_IMMEDIATE
         LEA     P_IM_DATA_SIGN,A1       ;#
         JSR     PRINT_INLINE
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000111000000000,D0   ;bit 11-9
+        LSR.L   #8,D0
+        LSR.L   #1,D0                   ;store count in D0
         CMPI.W  #0,D0                   ;value of zero specifies a shift count of eight
-        JSR     PRINT_EIGHT
+        BEQ     PRINT_EIGHT
         CMPI.W  #1,D0
-        JSR     PRINT_ONE
+        BEQ     PRINT_ONE
         CMPI.W  #2,D0
-        JSR     PRINT_TWO
+        BEQ     PRINT_TWO
         CMPI.W  #3,D0
-        JSR     PRINT_THREE
+        BEQ     PRINT_THREE
         CMPI.W  #4,D0
-        JSR     PRINT_FOUR
+        BEQ     PRINT_FOUR
         CMPI.W  #5,D0
-        JSR     PRINT_FIVE
+        BEQ     PRINT_FIVE
         CMPI.W  #6,D0
-        JSR     PRINT_SIX
+        BEQ     PRINT_SIX
         CMPI.W  #7,D0
-        JSR     PRINT_SEVEN
+        BEQ     PRINT_SEVEN
         RTS
 *-----------------------------------------------------------
 *PRINT_SHIFT_SOURCE_DATA
