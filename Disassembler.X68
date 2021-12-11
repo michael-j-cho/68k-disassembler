@@ -579,6 +579,9 @@ CHECK_FOR_LSR
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_LSR
+        JSR     PRINT_SHIFT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_SHIFT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_LSR_EA
@@ -598,6 +601,9 @@ CHECK_FOR_LSL
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_LSL
+        JSR     PRINT_SHIFT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_SHIFT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_LSL_EA
@@ -626,6 +632,9 @@ CHECK_FOR_ASR
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ASR
+        JSR     PRINT_SHIFT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_SHIFT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ASL_EA
@@ -645,6 +654,9 @@ CHECK_FOR_ASL
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ASL
+        JSR     PRINT_SHIFT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_SHIFT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ROL
@@ -655,6 +667,9 @@ CHECK_FOR_ROL
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ROL
+        JSR     PRINT_SHIFT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_SHIFT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ROL_EA
@@ -674,6 +689,9 @@ CHECK_FOR_ROR
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ROR
+        JSR     PRINT_SHIFT_SOURCE
+        JSR     PRINT_COMMA
+        JSR     PRINT_SHIFT_DEST
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ROR_EA
@@ -1028,6 +1046,72 @@ P_DEST_EA_MODE
         ;MULU    #6,D6
         ;JSR     0(A5,D3)
         ;RTS 
+        
+        
+*-----------------------------------------------------------
+*PRINT_SHIFT_SOURCE
+*Print source for shift operations (ASL, LSL, ROL, etc).
+*-----------------------------------------------------------  
+PRINT_SHIFT_SOURCE
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000000000100000,D0   ;bit 5
+        LSR.L   #5,D0
+        CMPI.W  #1,D0                   ;i/r == 1
+        BEQ     PRINT_SHIFT_SOURCE_DATA        ;source is data register
+        ;else, source is immediate data
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000111000000000,D0   ;bit 11-9
+        LSR.L   #8,D0
+        LSR.L   #1,D0                   ;store count in D0
+        JSR     PRINT_SHIFT_SOURCE_IMMEDIATE
+        RTS
+*-----------------------------------------------------------
+*PRINT_SHIFT_SOURCE_IMMEDIATE
+*Print immediate data as source for shift operations.
+*----------------------------------------------------------- 
+PRINT_SHIFT_SOURCE_IMMEDIATE
+        LEA     P_IM_DATA_SIGN,A1       ;#
+        JSR     PRINT_INLINE
+        CMPI.W  #0,D0                   ;value of zero specifies a shift count of eight
+        JSR     PRINT_EIGHT
+        CMPI.W  #1,D0
+        JSR     PRINT_ONE
+        CMPI.W  #2,D0
+        JSR     PRINT_TWO
+        CMPI.W  #3,D0
+        JSR     PRINT_THREE
+        CMPI.W  #4,D0
+        JSR     PRINT_FOUR
+        CMPI.W  #5,D0
+        JSR     PRINT_FIVE
+        CMPI.W  #6,D0
+        JSR     PRINT_SIX
+        CMPI.W  #7,D0
+        JSR     PRINT_SEVEN
+        RTS
+*-----------------------------------------------------------
+*PRINT_SHIFT_SOURCE_DATA
+*Print data register as source for shift operations.
+*----------------------------------------------------------- 
+PRINT_SHIFT_SOURCE_DATA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000111000000000,D0   ;bit 11-9
+        LSR.L   #8,D0
+        LSR.L   #1,D0
+        MOVE.W  D0,REG_NUM
+        JSR     PRINT_REG_MODE_0        ;Dn
+        RTS 
+*-----------------------------------------------------------
+*PRINT_SHIFT_DEST
+*Prints the destination for shift operations, they are always in the form of Dn
+*-----------------------------------------------------------  
+PRINT_SHIFT_DEST
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #%0000000000000111,D0
+        MOVE.W  D0,REG_NUM
+        JSR     PRINT_REG_MODE_0    ;Dn
+        RTS
+        
 *-----------------------------------------------------------
 *SAVE_DEST
 *Saves bits 11-6 in opcode.
@@ -1195,7 +1279,7 @@ PRINT_REG_MODE_7
         CMPI.W  #1,D0
         BEQ     PRINT_LONG_ADDR
         CMPI.W  #4,D0
-        BEQ     PRINT_IMMEDIATE_DATA (TODO)
+        BEQ     PRINT_IMMEDIATE_DATA
         ;else
         RTS
         
@@ -1334,6 +1418,10 @@ PRINT_SIX
         RTS
 PRINT_SEVEN
         LEA     P_CHAR_7,A1
+        JSR     PRINT_INLINE
+        RTS
+PRINT_EIGHT
+        LEA     P_CHAR_8,A1
         JSR     PRINT_INLINE
         RTS
 *-----------------------------------------------------------
