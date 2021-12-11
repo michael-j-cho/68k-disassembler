@@ -538,13 +538,6 @@ CHECK_FOR_AND ;it's AND at this point
 *-----------------------------------------------------------
 CHECK_GROUP_D
 
-CHECK_FOR_ADDX  
-        MOVE.W  CURRENT_OPCODE,D0
-        ANDI.W  #$F130,D0
-        CMP.W   #$D100,D0
-        BEQ     INVALID_OPCODE
-        ;else check for valid opcode(s)
-        
 CHECK_FOR_ADDA
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         MOVE.W  CURRENT_OPSIZE,D0
@@ -559,6 +552,13 @@ CHECK_FOR_ADDA
         MOVE.W  DEST_VAR,REG_NUM
         JSR     PRINT_REG_MODE_1
         BRA     OPCODE_SUBROUTINE_END
+
+CHECK_FOR_ADDX  
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$F130,D0
+        CMP.W   #$D100,D0
+        BEQ     INVALID_OPCODE
+        ;else check for valid opcode(s)
 
         ;there's only three opcodes in total, so has to be add at this point
 CHECK_FOR_ADD
@@ -1658,6 +1658,7 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
 
 
 
