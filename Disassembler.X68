@@ -575,30 +575,66 @@ CHECK_FOR_LSR
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F118,D0
         CMP.W   #$E008,D0
-        BNE     CHECK_FOR_LSL
+        BNE     CHECK_FOR_LSR_EA
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_LSR
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_LSR_EA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$E2C0,D0
+        BNE     CHECK_FOR_LSL
+        JSR     PRINT_LSR
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_LSL
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F118,D0
         CMP.W   #$E108,D0
-        BNE     CHECK_FOR_ASR
+        BNE     CHECK_FOR_LSL_EA
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_LSL
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_LSL_EA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$E3C0,D0
+        BNE     CHECK_FOR_ASR_EA
+        JSR     PRINT_LSL
+        JSR     PRINT_SOURCE
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_ASR_EA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$E0C0,D0
+        BNE     CHECK_FOR_ASR
+        JSR     PRINT_ASR
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ASR
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F118,D0
         CMP.W   #$E000,D0
-        BNE     CHECK_FOR_ASL
+        BNE     CHECK_FOR_ASL_EA
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ASR
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_ASL_EA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$E1C0,D0
+        BNE     CHECK_FOR_ASL
+        JSR     PRINT_ASL
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ASL
@@ -615,20 +651,38 @@ CHECK_FOR_ROL
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F118,D0
         CMP.W   #$E118,D0
-        BNE     CHECK_FOR_ROR
+        BNE     CHECK_FOR_ROL_EA
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ROL
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_ROL_EA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$E7C0,D0
+        BNE     CHECK_FOR_ROR
+        JSR     PRINT_ROL
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
 CHECK_FOR_ROR
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F118,D0
         CMP.W   #$E018,D0
-        BNE     INVALID_OPCODE
+        BNE     CHECK_FOR_ROR_EA
         ;else
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         JSR     PRINT_ROR
+        BRA     OPCODE_SUBROUTINE_END
+        
+CHECK_FOR_ROR_EA
+        MOVE.W  CURRENT_OPCODE,D0
+        ANDI.W  #$FFC0,D0
+        CMP.W   #$E6C0,D0
+        BNE     INVALID_OPCODE
+        JSR     PRINT_ROR
+        JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
 *Group F
