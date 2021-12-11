@@ -589,7 +589,7 @@ CHECK_FOR_LSR_EA
         ANDI.W  #$FFC0,D0
         CMP.W   #$E2C0,D0
         BNE     CHECK_FOR_LSL
-        JSR     PRINT_LSR
+        JSR     PRINT_LSR_EA
         JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
@@ -611,7 +611,7 @@ CHECK_FOR_LSL_EA
         ANDI.W  #$FFC0,D0
         CMP.W   #$E3C0,D0
         BNE     CHECK_FOR_ASR_EA
-        JSR     PRINT_LSL
+        JSR     PRINT_LSL_EA
         JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
@@ -620,7 +620,7 @@ CHECK_FOR_ASR_EA
         ANDI.W  #$FFC0,D0
         CMP.W   #$E0C0,D0
         BNE     CHECK_FOR_ASR
-        JSR     PRINT_ASR
+        JSR     PRINT_ASR_EA
         JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
@@ -642,7 +642,7 @@ CHECK_FOR_ASL_EA
         ANDI.W  #$FFC0,D0
         CMP.W   #$E1C0,D0
         BNE     CHECK_FOR_ASL
-        JSR     PRINT_ASL
+        JSR     PRINT_ASL_EA
         JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
@@ -677,7 +677,7 @@ CHECK_FOR_ROL_EA
         ANDI.W  #$FFC0,D0
         CMP.W   #$E7C0,D0
         BNE     CHECK_FOR_ROR
-        JSR     PRINT_ROL
+        JSR     PRINT_ROL_EA
         JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
         
@@ -699,7 +699,7 @@ CHECK_FOR_ROR_EA
         ANDI.W  #$FFC0,D0
         CMP.W   #$E6C0,D0
         BNE     INVALID_OPCODE
-        JSR     PRINT_ROR
+        JSR     PRINT_ROR_EA
         JSR     PRINT_SOURCE
         BRA     OPCODE_SUBROUTINE_END
 *-----------------------------------------------------------
@@ -979,16 +979,47 @@ PRINT_LSR
         JSR     PRINT_INLINE
         JSR     PRINT_SIZE
         RTS
-
+PRINT_LSR_EA
+        LEA     P_LSR,A1
+        JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        ;else
+        JSR     PRINT_SIZE
+        RTS
 PRINT_LSL
         LEA     P_LSL,A1
         JSR     PRINT_INLINE
+        JSR     PRINT_SIZE
+        RTS
+        
+PRINT_LSL_EA
+        LEA     P_LSL,A1
+        JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        ;else
         JSR     PRINT_SIZE
         RTS
 
 PRINT_ASR
         LEA     P_ASR,A1
         JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        JSR     PRINT_SIZE
+        RTS
+        
+PRINT_ASR_EA
+        LEA     P_ASR,A1
+        JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        ;else
         JSR     PRINT_SIZE
         RTS
 
@@ -998,15 +1029,45 @@ PRINT_ASL
         JSR     PRINT_SIZE
         RTS
 
+PRINT_ASL_EA
+        LEA     P_ASL,A1
+        JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        ;else
+        JSR     PRINT_SIZE
+        RTS
+
 PRINT_ROL
         LEA     P_ROL,A1
         JSR     PRINT_INLINE
         JSR     PRINT_SIZE
         RTS
 
+PRINT_ROL_EA
+        LEA     P_ROL,A1
+        JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        ;else
+        JSR     PRINT_SIZE
+        RTS
+        
 PRINT_ROR
         LEA     P_ROR,A1
         JSR     PRINT_INLINE
+        JSR     PRINT_SIZE
+        RTS
+        
+PRINT_ROR_EA
+        LEA     P_ROR,A1
+        JSR     PRINT_INLINE
+        JSR     SAVE_SOURCE
+        CMPI.W  #%111,SOURCE_MODE
+        BEQ     PRINT_SHIFT_EA_WORD_LONG
+        ;else
         JSR     PRINT_SIZE
         RTS
 
@@ -1047,7 +1108,7 @@ P_DEST_EA_MODE
         ;JSR     0(A5,D3)
         ;RTS 
         
-        
+
 *-----------------------------------------------------------
 *PRINT_SHIFT_SOURCE
 *Print source for shift operations (ASL, LSL, ROL, etc).
@@ -1112,6 +1173,16 @@ PRINT_SHIFT_DEST
         JSR     PRINT_REG_MODE_0    ;Dn
         RTS
         
+*-----------------------------------------------------------
+*PRINT_SHIFT_EA_WORD_LONG
+*If shift operation has mode 111, register 0 has size W, register 1 has size L
+*-----------------------------------------------------------  
+PRINT_SHIFT_EA_WORD_LONG
+        CMPI.W  #0,SOURCE_VAR
+        BEQ     PRINT_WORD
+        CMPI.W  #1,SOURCE_VAR
+        BEQ     PRINT_LONG
+        RTS
 *-----------------------------------------------------------
 *SAVE_DEST
 *Saves bits 11-6 in opcode.
