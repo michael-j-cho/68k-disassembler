@@ -781,7 +781,7 @@ TWO_BIT_SIZE_AT_BITS_7_6
 *These will load the appropriate variables with the constant to be printed out by I/O
 *-----------------------------------------------------------
 
-*Some instructions either place the ea first or second, and Dn in the other spot
+*Some instructions either place the EA first or second, and Dn in the other spot
 *These three print the ea in a location that depends on the 8th bit
 PRINT_SOURCE_DEST_ORDER
         JSR     ONE_BIT_SIZE_AT_BIT_8 
@@ -1329,7 +1329,6 @@ PRINT_REG_MODE_2
         RTS
 PRINT_REG_MODE_3
         JSR     PRINT_REG_MODE_2    ;(An)
-        
         LEA     P_POS_SIGN,A1       ;+
         MOVE.B  #14,D0
         TRAP    #15
@@ -1411,6 +1410,8 @@ PRINT_IMMEDIATE_DATA
         LSR.W   #6,D0
         CMPI.W  #0,D0   ;if opcode is variations of MOVE check bit 13,12
         BEQ     PRINT_IMMEDIATE_DATA_MOVE
+        CMPI.W  #1,D0
+        BEQ     PRINT_IMMEDIATE_DATA_ADDA
         ;if opcode is ADDA check bit 8,7 (TODO)
         
         ;else
@@ -1437,6 +1438,21 @@ PRINT_IMMEDIATE_DATA_MOVE
         BEQ     PRINT_WORD_ADDR
         ;else 
         RTS
+        
+*-----------------------------------------------------------
+*PRINT_IMMEDIATE_DATA_ADDA
+*NOTE: BEQ from PRINT_REG_MODE_7, RTS back to JSR PRINT_REG_MODE_7
+*----------------------------------------------------------- 
+PRINT_IMMEDIATE_DATA_ADDA
+        JSR     ONE_BIT_SIZE_AT_BIT_8
+        MOVE.W  CURRENT_OPSIZE,D0
+        CMPI.W  #%0,D0
+        BEQ     PRINT_WORD_ADDR
+        CMPI.W  #%1,D0
+        BEQ     PRINT_LONG_ADDR
+        ;else 
+        RTS
+        
 *-----------------------------------------------------------
 *PRINT_REG_NUM
 *Prints address/data register number. e.g. prints 0 in D0
@@ -1878,6 +1894,7 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
 
 
 
