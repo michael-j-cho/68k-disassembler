@@ -466,7 +466,7 @@ CHECK_FOR_SUBX
         CMP.W   #$9100,D0
         BEQ     INVALID_OPCODE
         ;else check for next possible invalid opcode
-
+        
 CHECK_FOR_SUBA
         MOVE.W  CURRENT_OPCODE,D0
         ANDI.W  #$F0C0,D0
@@ -542,7 +542,7 @@ CHECK_FOR_ADDA
         JSR     TWO_BIT_SIZE_AT_BITS_7_6
         MOVE.W  CURRENT_OPSIZE,D0
         CMP.W   #%11,D0 *can only be 11 for ADDA
-        BNE     CHECK_FOR_ADD
+        BNE     CHECK_FOR_ADDX
         ;else
         JSR     TWO_BIT_SIZE_AT_BIT_8_7
         JSR     PRINT_ADDA
@@ -1658,6 +1658,7 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
 
 
 
