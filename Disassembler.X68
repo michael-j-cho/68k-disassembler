@@ -941,6 +941,22 @@ PRINT_MOVEQ ;only does longs
         JSR     PRINT_INLINE
         LEA     P_LONG,A1
         JSR     PRINT_INLINE
+        
+        LEA     P_IM_DATA_SIGN,A1       ;#
+        JSR     PRINT_INLINE
+        LEA     P_HEX_SIGN,A1   ;$
+        JSR     PRINT_INLINE
+
+        CLR.L   D1
+        MOVE.W  CURRENT_OPCODE,D1
+        AND.L   #$00FF,D1
+        JSR     PRINT_BASE_16
+        
+        JSR     PRINT_COMMA
+        JSR     SAVE_DEST
+        MOVE.W  DEST_VAR,REG_NUM
+        JSR     PRINT_REG_MODE_0
+       
         RTS
 
 *-----Group 8-----*
