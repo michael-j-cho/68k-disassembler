@@ -1103,7 +1103,7 @@ PRINT_ROR_EA
 *-----------------------------------------------------------
 LOAD_INVALID_WORD
         CLR     D1
-        MOVE.W  (A6),D1
+        MOVE.W  CURRENT_OPCODE,D1
         JSR     PRINT_BASE_16
         RTS
 
