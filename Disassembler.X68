@@ -1407,10 +1407,12 @@ PRINT_IMMEDIATE_DATA
         
         MOVE.W  CURRENT_OPCODE,D0
         LSR.W   #8,D0
-        LSR.W   #7,D0
+        LSR.W   #6,D0
         CMPI.W  #0,D0   ;if opcode is variations of MOVE check bit 13,12
         BEQ     PRINT_IMMEDIATE_DATA_MOVE
-        CMPI.W  #1,D0
+        MOVE.W  CURRENT_OPCODE,D0
+        AND.W   #$F0C0,D0
+        CMP.W   #$D0C0,D0
         BEQ     PRINT_IMMEDIATE_DATA_ADDA
         ;if opcode is ADDA check bit 8,7 (TODO)
         
