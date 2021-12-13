@@ -966,7 +966,7 @@ PRINT_Bcc_WORD
         JSR     PRINT_INLINE            ;$        
         MOVE.W  (A2),D0
         MOVE.W  A2,D1
-        ADD.L   D0,D1
+        ADD.W   D0,D1
         ADDA.W  #2,A2
         JSR     PRINT_BASE_16
         RTS
