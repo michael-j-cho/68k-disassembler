@@ -918,23 +918,69 @@ PRINT_ADDQ
 PRINT_BGT
         LEA     P_BGT,A1
         JSR     PRINT_INLINE
+        JSR     PRINT_Bcc
         RTS
 
 PRINT_BLE
         LEA     P_BLE,A1
         JSR     PRINT_INLINE
+        JSR     PRINT_Bcc
         RTS
 
 PRINT_BEQ
         LEA     P_BEQ,A1
         JSR     PRINT_INLINE
+        JSR     PRINT_Bcc
         RTS
 
 PRINT_BRA
         LEA     P_BRA,A1
         JSR     PRINT_INLINE
+        JSR     PRINT_Bcc
+        RTS
+        
+PRINT_Bcc
+        CLR     D0
+        MOVE.W  CURRENT_OPCODE,D0
+        AND.W   #$00FF,D0
+        CMP.B   #$FF,D0
+        BEQ     PRINT_Bcc_LONG
+        CMP.B   #$00,D0
+        BEQ     PRINT_Bcc_WORD
+        BRA     PRINT_Bcc_BYTE
+        
+PRINT_Bcc_BYTE ;no need to advance instruction/address pointer, so it's different from word
+        LEA     P_HEX_SIGN,A1
+        JSR     PRINT_INLINE            ;$
+        CLR     D1
+        MOVE.W  CURRENT_OPCODE,D0
+        AND.W   #$00FF,D0
+        MOVE.B  D0,D1
+        MOVE.L  A2,D0
+        ADD.L   D0,D1
+        JSR     PRINT_BASE_16
         RTS
 
+PRINT_Bcc_WORD
+        LEA     P_HEX_SIGN,A1
+        JSR     PRINT_INLINE            ;$        
+        MOVE.W  (A2),D0
+        MOVE.W  A2,D1
+        ADD.L   D0,D1
+        ADDA.W  #2,A2
+        JSR     PRINT_BASE_16
+        RTS
+        
+PRINT_Bcc_LONG
+        LEA     P_HEX_SIGN,A1
+        JSR     PRINT_INLINE            ;$
+        MOVE.L  (A2),D0
+        MOVE.W  A2,D1
+        ADD.L   D0,D1
+        ADDA.W  #4,A2
+        JSR     PRINT_BASE_16
+        RTS
+        
 *-----Group 7-----*
 PRINT_MOVEQ ;only does longs
         LEA     P_MOVEQ,A1
@@ -1912,14 +1958,6 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
-
-
-
-
-
-
-
-
 
 
 
