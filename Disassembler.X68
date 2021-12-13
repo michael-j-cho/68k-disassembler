@@ -1890,23 +1890,23 @@ P_CHAR_E	DC.B	'E',0
 P_CHAR_F	DC.B	'F',0
 
 *table for opcode constants
-P_INVALID       DC.B    '   DATA   $',0
+P_INVALID       DC.B    '   DATA  $',0
 P_Byte          DC.B    '.B ',0
 P_Word          DC.B    '.W ',0
 P_Long          DC.B    '.L ',0
 P_MOVE          DC.B    '   MOVE',0
 P_MOVEA         DC.B    '   MOVEA',0
-P_LEA           DC.B    '   LEA     ',0
-P_JSR           DC.B    '   JSR     ',0
+P_LEA           DC.B    '   LEA   ',0
+P_JSR           DC.B    '   JSR   ',0
 P_RTS           DC.B    '   RTS',0      *no operands
 P_MOVEM         DC.B    '   MOVEM',0
-P_NOT           DC.B    '   NOT     ',0
+P_NOT           DC.B    '   NOT   ',0
 P_NOP           DC.B    '   NOP',0      *no operands
 P_ADDQ          DC.B    '   ADDQ',0
-P_BGT           DC.B    '   BGT     ',0
-P_BLE           DC.B    '   BLT     ',0
-P_BEQ           DC.B    '   BEQ     ',0
-P_BRA           DC.B    '   BRA     ',0
+P_BGT           DC.B    '   BGT   ',0
+P_BLE           DC.B    '   BLT   ',0
+P_BEQ           DC.B    '   BEQ   ',0
+P_BRA           DC.B    '   BRA   ',0
 P_MOVEQ         DC.B    '   MOVEQ',0
 P_OR            DC.B    '   OR',0
 P_SUB           DC.B    '   SUB',0
@@ -1958,6 +1958,7 @@ SIZE_TO_PRINT       DS.W    1
 IM_DATA_SIZE        DS.W    1
 
     END    $1000        ; last line of source
+
 
 
 
